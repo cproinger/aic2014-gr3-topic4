@@ -7,6 +7,7 @@
 	<packaging>pom</packaging>
 	<modules>
 		<module>aic2014-gr3-topic4-twitter</module>
+		<module>aic2014-gr3-topic4-shared</module>
 	</modules>
 
 	<build>
