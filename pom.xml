@@ -8,7 +8,11 @@
 	<modules>
 		<module>aic2014-gr3-topic4-twitter</module>
 		<module>aic2014-gr3-topic4-shared</module>
+		<module>aic2014-gr3-topic4-docstore</module>
 	</modules>
+	<properties>
+		<spring.version>4.1.1.RELEASE</spring.version>
+	</properties>
 
 	<build>
 
@@ -28,12 +32,29 @@
 
 	</build>
 
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-framework-bom</artifactId>
+				<version>${spring.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<dependencies>
 		<!-- dependencies for all submodules -->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.11</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.7.7</version>
 		</dependency>
 	</dependencies>
 </project>
