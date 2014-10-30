@@ -7,7 +7,7 @@ import org.junit.Test;
 import twitter4j.TwitterException;
 
 
-public class MinerTest {
+public class StreamApiMinerTest {
 
 	@Test
 	public void test() throws TwitterException, IOException {

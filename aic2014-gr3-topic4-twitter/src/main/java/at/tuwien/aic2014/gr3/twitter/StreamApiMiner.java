@@ -2,14 +2,21 @@ package at.tuwien.aic2014.gr3.twitter;
 
 import java.io.IOException;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.stereotype.Service;
+
+import at.tuwien.aic2014.gr3.shared.TweetRepository;
 import twitter4j.FilterQuery;
-import twitter4j.ResponseList;
 import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.StatusListener;
 import twitter4j.TwitterException;
-import twitter4j.TwitterFactory;
+import twitter4j.TwitterObjectFactory;
 import twitter4j.TwitterStream;
 import twitter4j.TwitterStreamFactory;
 
@@ -17,11 +24,14 @@ import twitter4j.TwitterStreamFactory;
  * @author cproinger
  *
  */
-public class Miner {
+@Service
+public class StreamApiMiner {
 	
 	private StatusListener listener = new StatusListener() {
 		public void onStatus(Status status) {
 			System.out.println(status + ": " + status.getRetweetedStatus());
+			String rawJSON = TwitterObjectFactory.getRawJSON(status);
+			tweetRepository.save(rawJSON);
 			
 //			try {
 //				ResponseList<Status> l = TwitterFactory.getSingleton().lookup(new long[]{status.getId()});
@@ -58,10 +68,16 @@ public class Miner {
 		}
 	};
 	private TwitterStream twitterStream;
+	
+	@Autowired
+	private TwitterStreamFactory twitterStreamFactory;
+	
+	@Autowired
+	private TweetRepository tweetRepository;
 
 	public void start() throws TwitterException, IOException {
 		
-		twitterStream = new TwitterStreamFactory().getInstance();
+		twitterStream = twitterStreamFactory.getInstance();
 		twitterStream.addListener(listener);
 		String[] track = new String[] { "car" };
 		String[] language = new String[] { "de" };
@@ -77,7 +93,9 @@ public class Miner {
 	}
 	
 	public static void main(String[] args) {
-		Miner m = new Miner();
+		System.setProperty("twitter4j.jsonStoreEnabled", "true");
+		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(TwitterConfig.class);
+		StreamApiMiner m = ctx.getBean(StreamApiMiner.class);
 		try {
 			m.start();
 		} catch (TwitterException | IOException e) {
@@ -91,5 +109,6 @@ public class Miner {
 			e.printStackTrace();
 		}
 		m.shutdown();
+		ctx.close();
 	}
 }

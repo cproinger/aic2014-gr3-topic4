@@ -11,10 +11,10 @@ import com.mongodb.BasicDBObject;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = DocStoreConfig.class)
-public class TweetRepositoryTest {
+public class MongoTweetRepositoryTest {
 
 	@Autowired
-	private TweetRepository repo;
+	private MongoTweetRepository repo;
 	
 	@Test
 	public void test() {

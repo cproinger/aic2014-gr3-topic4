@@ -5,6 +5,5 @@
     <artifactId>aic2014-gr3-topic4-parent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
-  <groupId>aic2014-gr3-topic4-shared</groupId>
   <artifactId>aic2014-gr3-topic4-shared</artifactId>
 </project>

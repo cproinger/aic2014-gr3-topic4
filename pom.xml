@@ -6,9 +6,9 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<modules>
-		<module>aic2014-gr3-topic4-twitter</module>
 		<module>aic2014-gr3-topic4-shared</module>
 		<module>aic2014-gr3-topic4-docstore</module>
+		<module>aic2014-gr3-topic4-twitter</module>
 	</modules>
 	<properties>
 		<spring.version>4.1.1.RELEASE</spring.version>
