@@ -1,0 +1,14 @@
+package at.tuwien.aic2014.gr3.dao;
+
+import at.tuwien.aic2014.gr3.domain.TwitterUser;
+
+public interface TwitterUserRelationshipHandler {
+
+    public void follows(TwitterUser twitterUser);
+    public void mentioned(TwitterUser twitterUser);
+    public void retweeted(TwitterUser twitterUser);
+    public void isFriendOf(TwitterUser twitterUser);
+    public void repliedTo(TwitterUser twitterUser);
+    public void mentionedHashtag(String hashtag);
+    public void mentionedTopic(String topic);
+}
