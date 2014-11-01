@@ -2,14 +2,12 @@ package at.tuwien.aic2014.gr3.twitter;
 
 import java.io.IOException;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.stereotype.Service;
 
-import at.tuwien.aic2014.gr3.shared.TweetRepository;
 import twitter4j.FilterQuery;
 import twitter4j.StallWarning;
 import twitter4j.Status;
@@ -19,6 +17,7 @@ import twitter4j.TwitterException;
 import twitter4j.TwitterObjectFactory;
 import twitter4j.TwitterStream;
 import twitter4j.TwitterStreamFactory;
+import at.tuwien.aic2014.gr3.shared.TweetRepository;
 
 /**
  * @author cproinger
@@ -87,6 +86,7 @@ public class StreamApiMiner {
 		twitterStream.sample();
 	}
 	
+	@PreDestroy
 	public void shutdown() {
 		//twitterStream.cleanUp();
 		twitterStream.shutdown();
