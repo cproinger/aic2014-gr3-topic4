@@ -3,3 +3,11 @@ jdk:
   - oraclejdk8
 services:
   - mongodb
+  
+notifications:
+  email:
+    recipients:
+      - christian.proinger@gmail.com
+      - cputzhtl@gmail.com
+    on_success: change
+    on_failure: always
