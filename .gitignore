@@ -1,5 +1,6 @@
 # Maven files
 target/
+src/main/webapp/WEB-INF/classes
 bin/
 
 # Eclipse project files
