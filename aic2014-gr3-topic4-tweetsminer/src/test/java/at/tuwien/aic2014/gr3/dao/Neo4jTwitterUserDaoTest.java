@@ -78,7 +78,7 @@ public class Neo4jTwitterUserDaoTest {
     public void testFollowsRelationshipSingleWithExistentUser() throws Exception {
         neo4jTwitterUserDao.user(testTwitterUser).follows(testTwitterUser);
 
-        assertUserRelationship(testTwitterUser, "FOLLOWS", testTwitterUser, 1);
+        assertUserRelationship(testTwitterUser, TwitterUserRelationships.FOLLOWS.name(), testTwitterUser, 1);
     }
 
     @Test
@@ -88,7 +88,7 @@ public class Neo4jTwitterUserDaoTest {
 
         neo4jTwitterUserDao.user(testTwitterUser).follows(newUser);
 
-        assertUserRelationship(testTwitterUser, "FOLLOWS", newUser, 1);
+        assertUserRelationship(testTwitterUser, TwitterUserRelationships.FOLLOWS.name(), newUser, 1);
     }
 
     @Test
@@ -101,14 +101,14 @@ public class Neo4jTwitterUserDaoTest {
             neo4jTwitterUserDao.user(testTwitterUser).follows(newUser);
         }
 
-        assertUserRelationship(testTwitterUser, "FOLLOWS", newUser, degree);
+        assertUserRelationship(testTwitterUser, TwitterUserRelationships.FOLLOWS.name(), newUser, degree);
     }
 
     @Test
     public void testMentionedRelationshipSingleWithExistentUser() throws Exception {
         neo4jTwitterUserDao.user(testTwitterUser).mentioned(testTwitterUser);
 
-        assertUserRelationship(testTwitterUser, "MENTIONED", testTwitterUser, 1);
+        assertUserRelationship(testTwitterUser, TwitterUserRelationships.MENTIONED.name(), testTwitterUser, 1);
     }
 
     @Test
@@ -118,7 +118,7 @@ public class Neo4jTwitterUserDaoTest {
 
         neo4jTwitterUserDao.user(testTwitterUser).mentioned(newUser);
 
-        assertUserRelationship(testTwitterUser, "MENTIONED", newUser, 1);
+        assertUserRelationship(testTwitterUser, TwitterUserRelationships.MENTIONED.name(), newUser, 1);
     }
 
     @Test
@@ -131,14 +131,14 @@ public class Neo4jTwitterUserDaoTest {
             neo4jTwitterUserDao.user(testTwitterUser).mentioned(newUser);
         }
 
-        assertUserRelationship(testTwitterUser, "MENTIONED", newUser, degree);
+        assertUserRelationship(testTwitterUser, TwitterUserRelationships.MENTIONED.name(), newUser, degree);
     }
 
     @Test
     public void testRetweetedRelationshipSingleWithExistentUser() throws Exception {
         neo4jTwitterUserDao.user(testTwitterUser).retweeted(testTwitterUser);
 
-        assertUserRelationship(testTwitterUser, "RETWEETED", testTwitterUser, 1);
+        assertUserRelationship(testTwitterUser, TwitterUserRelationships.RETWEETED.name(), testTwitterUser, 1);
     }
 
     @Test
@@ -148,7 +148,7 @@ public class Neo4jTwitterUserDaoTest {
 
         neo4jTwitterUserDao.user(testTwitterUser).retweeted(newUser);
 
-        assertUserRelationship(testTwitterUser, "RETWEETED", newUser, 1);
+        assertUserRelationship(testTwitterUser, TwitterUserRelationships.RETWEETED.name(), newUser, 1);
     }
 
     @Test
@@ -161,14 +161,14 @@ public class Neo4jTwitterUserDaoTest {
             neo4jTwitterUserDao.user(testTwitterUser).retweeted(newUser);
         }
 
-        assertUserRelationship(testTwitterUser, "RETWEETED", newUser, degree);
+        assertUserRelationship(testTwitterUser, TwitterUserRelationships.RETWEETED.name(), newUser, degree);
     }
 
     @Test
     public void testIsFriendOfRelationshipSingleWithExistentUser() throws Exception {
         neo4jTwitterUserDao.user(testTwitterUser).isFriendOf(testTwitterUser);
 
-        assertUserRelationship(testTwitterUser, "IS_FRIEND_OF", testTwitterUser, 1);
+        assertUserRelationship(testTwitterUser, TwitterUserRelationships.IS_FRIEND_OF.name(), testTwitterUser, 1);
     }
 
     @Test
@@ -178,7 +178,7 @@ public class Neo4jTwitterUserDaoTest {
 
         neo4jTwitterUserDao.user(testTwitterUser).isFriendOf(newUser);
 
-        assertUserRelationship(testTwitterUser, "IS_FRIEND_OF", newUser, 1);
+        assertUserRelationship(testTwitterUser, TwitterUserRelationships.IS_FRIEND_OF.name(), newUser, 1);
     }
 
     @Test
@@ -191,14 +191,14 @@ public class Neo4jTwitterUserDaoTest {
             neo4jTwitterUserDao.user(testTwitterUser).isFriendOf(newUser);
         }
 
-        assertUserRelationship(testTwitterUser, "IS_FRIEND_OF", newUser, degree);
+        assertUserRelationship(testTwitterUser, TwitterUserRelationships.IS_FRIEND_OF.name(), newUser, degree);
     }
 
     @Test
     public void testRepliedToRelationshipSingleWithExistentUser() throws Exception {
         neo4jTwitterUserDao.user(testTwitterUser).repliedTo(testTwitterUser);
 
-        assertUserRelationship(testTwitterUser, "REPLIED_TO", testTwitterUser, 1);
+        assertUserRelationship(testTwitterUser, TwitterUserRelationships.REPLIED_TO.name(), testTwitterUser, 1);
     }
 
     @Test
@@ -208,7 +208,7 @@ public class Neo4jTwitterUserDaoTest {
 
         neo4jTwitterUserDao.user(testTwitterUser).repliedTo(newUser);
 
-        assertUserRelationship(testTwitterUser, "REPLIED_TO", newUser, 1);
+        assertUserRelationship(testTwitterUser, TwitterUserRelationships.REPLIED_TO.name(), newUser, 1);
     }
 
     @Test
@@ -221,7 +221,7 @@ public class Neo4jTwitterUserDaoTest {
             neo4jTwitterUserDao.user(testTwitterUser).repliedTo(newUser);
         }
 
-        assertUserRelationship(testTwitterUser, "REPLIED_TO", newUser, degree);
+        assertUserRelationship(testTwitterUser, TwitterUserRelationships.REPLIED_TO.name(), newUser, degree);
     }
 
     @Test
@@ -324,7 +324,7 @@ public class Neo4jTwitterUserDaoTest {
                 "MATCH (u1:%s {%s:{u1_id}}) - [rel:%s] -> (hashtag:%s {%s:{hashtag}}) RETURN rel",
                 Neo4jTwitterUserDao.TWITTER_USER_NODE_LABEL.name(),
                 Neo4jTwitterUserDao.TWITTER_USER_ID_PROP,
-                "MENTIONED_HASHTAG",
+                TwitterUserRelationships.MENTIONED_HASHTAG.name(),
                 Neo4jTwitterUserRelationshipHandler.HASHTAG_LABEL.name(),
                 Neo4jTwitterUserRelationshipHandler.HASHTAG_NAME_PROP);
         Map<String, Object> params = new HashMap<>();
@@ -346,7 +346,7 @@ public class Neo4jTwitterUserDaoTest {
                 "MATCH (u1:%s {%s:{u1_id}}) - [rel:%s] -> (topic:%s {%s:{topic}}) RETURN rel",
                 Neo4jTwitterUserDao.TWITTER_USER_NODE_LABEL.name(),
                 Neo4jTwitterUserDao.TWITTER_USER_ID_PROP,
-                "MENTIONED_TOPIC",
+                TwitterUserRelationships.MENTIONED_TOPIC.name(),
                 Neo4jTwitterUserRelationshipHandler.TOPIC_LABEL.name(),
                 Neo4jTwitterUserRelationshipHandler.TOPIC_NAME_PROP);
         Map<String, Object> params = new HashMap<>();

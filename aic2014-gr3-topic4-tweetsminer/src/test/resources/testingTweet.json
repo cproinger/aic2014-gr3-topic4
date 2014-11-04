@@ -1,0 +1,111 @@
+{
+    "_id": {
+        "$oid": "5451fdfd196c5ed669b7d9d3"
+    },
+    "in_reply_to_status_id_str": null,
+    "in_reply_to_status_id": null,
+    "created_at": "Thu Oct 30 08:59:46 +0000 2014",
+    "in_reply_to_user_id_str": null,
+    "source": "<a href=\"http://www.twitter.com\" rel=\"nofollow\">Twitter for Windows</a>",
+    "retweet_count": 0,
+    "retweeted": false,
+    "geo": null,
+    "filter_level": "medium",
+    "in_reply_to_screen_name": null,
+    "id_str": "527746673410584576",
+    "in_reply_to_user_id": null,
+    "favorite_count": 0,
+    "id": 527746673410584576,
+    "text": "http://t.co/wBsL7knD3R http://t.co/DCwxI1vyYH This @user1 is a #hashtag1 testing tweet @user2 #hashtag2",
+    "place": null,
+    "lang": "en",
+    "favorited": false,
+    "possibly_sensitive": false,
+    "coordinates": null,
+    "truncated": false,
+    "timestamp_ms": "1414659586663",
+    "entities": {
+        "urls": [
+            {
+                "display_url": "osssbsop3p3.org/41427200010f3k…",
+                "indices": [ 0, 22 ],
+                "expanded_url": "http://osssbsop3p3.org/41427200010f3k6o8h6w1x1x6h4a5n6s8s7i8z8v8b9f7e2m8v7-12125612",
+                "url": "http://t.co/wBsL7knD3R"
+            },
+            {
+                "display_url": "osssbsop3p3.org/41427200010gdl…",
+                "indices": [ 23, 45 ],
+                "expanded_url": "http://osssbsop3p3.org/41427200010gdlpvcqyuwnhakrvayzbwfkzqvdvlocvoxlbhweh-12390845",
+                "url": "http://t.co/DCwxI1vyYH"
+            }
+        ],
+        "hashtags": [
+            {
+                "indices" : [ 31, 40 ],
+                "text" : "hashtag1"
+            },
+            {
+                "indices" : [ 41, 67 ],
+                "text" : "hashtag2"
+            }
+        ],
+        "user_mentions": [
+            {
+                "indices" : [ 0, 14 ],
+                "screen_name" : "user1",
+                "id_str" : "123",
+                "name" : "u1 testing",
+                "id" : 101
+            },
+            {
+                "indices" : [ 0, 14 ],
+                "screen_name" : "user2",
+                "id_str" : "124",
+                "name" : "u2 testing",
+                "id" : 102
+            }
+        ],
+        "trends": [],
+        "symbols": []
+    },
+    "contributors": null,
+    "user": {
+        "utc_offset": null,
+        "friends_count": 10,
+        "profile_image_url_https": "https://abs.twimg.com/sticky/default_profile_images/default_profile_1_normal.png",
+        "listed_count": 0,
+        "profile_background_image_url": "http://abs.twimg.com/images/themes/theme1/bg.png",
+        "default_profile_image": true,
+        "favourites_count": 0,
+        "description": null,
+        "created_at": "Thu Dec 26 06:16:26 +0000 2013",
+        "is_translator": false,
+        "profile_background_image_url_https": "https://abs.twimg.com/images/themes/theme1/bg.png",
+        "protected": false,
+        "screen_name": "romakotov1",
+        "id_str": "2262411530",
+        "profile_link_color": "0084B4",
+        "id": 100,
+        "geo_enabled": false,
+        "profile_background_color": "C0DEED",
+        "lang": "ru",
+        "profile_sidebar_border_color": "C0DEED",
+        "profile_text_color": "333333",
+        "verified": false,
+        "profile_image_url": "http://abs.twimg.com/sticky/default_profile_images/default_profile_1_normal.png",
+        "time_zone": null,
+        "url": null,
+        "contributors_enabled": false,
+        "profile_background_tile": false,
+        "statuses_count": 8354,
+        "follow_request_sent": null,
+        "followers_count": 0,
+        "profile_use_background_image": true,
+        "default_profile": true,
+        "following": null,
+        "name": "roma kotov",
+        "location": "",
+        "profile_sidebar_fill_color": "DDEEF6",
+        "notifications": null
+    }
+}

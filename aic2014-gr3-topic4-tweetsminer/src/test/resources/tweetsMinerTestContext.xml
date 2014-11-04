@@ -3,27 +3,33 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="graphdbFactory" class="org.neo4j.test.TestGraphDatabaseFactory"/>
+    <bean id="graphdbFactory" class="org.neo4j.test.TestGraphDatabaseFactory" lazy-init="true"/>
 
     <bean id="graphdb" scope="singleton" class="org.neo4j.graphdb.GraphDatabaseService" destroy-method="shutdown"
-          factory-bean="graphdbFactory" factory-method="newImpermanentDatabase"/>
+          factory-bean="graphdbFactory" factory-method="newImpermanentDatabase" lazy-init="true"/>
 
-    <bean id="executionEngine" class="org.neo4j.cypher.ExecutionEngine" scope="singleton">
+    <bean id="executionEngine" class="org.neo4j.cypher.ExecutionEngine" scope="singleton" lazy-init="true">
         <constructor-arg ref="graphdb"/>
         <constructor-arg value="DEV_NULL"/>
     </bean>
 
     <bean id="twitterUserRelationshipHandlerFactory" class="at.tuwien.aic2014.gr3.dao.TwitterUserRelationshipHandlerFactory"
-            scope="singleton">
+            scope="singleton" lazy-init="true">
         <property name="graphDb" ref="graphdb"/>
     </bean>
 
-    <bean id="testTwitterUser" class="at.tuwien.aic2014.gr3.domain.TwitterUser">
+    <bean id="testTwitterUser" class="at.tuwien.aic2014.gr3.domain.TwitterUser" lazy-init="true">
         <property name="id" value="1"/>
     </bean>
 
-    <bean id="neo4jTwitterUserDao" class="at.tuwien.aic2014.gr3.dao.Neo4jTwitterUserDao" scope="singleton">
+    <bean id="neo4jTwitterUserDao" class="at.tuwien.aic2014.gr3.dao.Neo4jTwitterUserDao"
+          scope="singleton" lazy-init="true">
         <property name="graphDb" ref="graphdb"/>
         <property name="twitterUserRelationshipHandlerFactory" ref="twitterUserRelationshipHandlerFactory"/>
+    </bean>
+
+    <bean id="mentionedUsersStatusProcessor" class="at.tuwien.aic2014.gr3.tweetsminer.MentionedUsersTweetProcessor"
+          scope="singleton" lazy-init="true">
+        <property name="twitterUserDao" ref="neo4jTwitterUserDao"/>
     </bean>
 </beans>

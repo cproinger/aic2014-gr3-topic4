@@ -4,17 +4,12 @@ import at.tuwien.aic2014.gr3.domain.TwitterUser;
 import org.apache.log4j.Logger;
 import org.neo4j.graphdb.*;
 
-enum TwitterUserRelationships implements RelationshipType {
-    FOLLOWS,
-    MENTIONED,
-    RETWEETED,
-    IS_FRIEND_OF,
-    REPLIED_TO,
-    MENTIONED_HASHTAG,
-    MENTIONED_TOPIC
-}
+public class Neo4jTwitterUserRelationshipHandler implements  TwitterUserRelationshipHandler {
 
-class Neo4jTwitterUserRelationshipHandler implements  TwitterUserRelationshipHandler {
+    public static final String HASHTAG_NAME_PROP = "hashtag";
+    public static final Label HASHTAG_LABEL = () -> "hashtag";
+    public static final String TOPIC_NAME_PROP = "topic";
+    public static final Label TOPIC_LABEL = () -> "topic";
 
     private final static Logger log = Logger.getLogger(Neo4jTwitterUserRelationshipHandler.class);
 
@@ -31,10 +26,10 @@ class Neo4jTwitterUserRelationshipHandler implements  TwitterUserRelationshipHan
         log.debug("Twitter user " + this.twitterUser.getId() +
                 " -> follows -> Twitter user " + twitterUser.getId());
 
+        Transaction tx = graphDb.beginTx();
+
         Node userNode = this.getOrCreateUserNode(this.twitterUser);
         Node followedUserNode = this.getOrCreateUserNode(twitterUser);
-
-        Transaction tx = graphDb.beginTx();
 
         userNode.createRelationshipTo(followedUserNode, TwitterUserRelationships.FOLLOWS);
 
@@ -46,10 +41,10 @@ class Neo4jTwitterUserRelationshipHandler implements  TwitterUserRelationshipHan
         log.debug("Twitter user " + this.twitterUser.getId() +
                 " -> mentioned -> Twitter user " + twitterUser.getId());
 
+        Transaction tx = graphDb.beginTx();
+
         Node userNode = this.getOrCreateUserNode(this.twitterUser);
         Node mentionedUserNode = this.getOrCreateUserNode(twitterUser);
-
-        Transaction tx = graphDb.beginTx();
 
         userNode.createRelationshipTo(mentionedUserNode, TwitterUserRelationships.MENTIONED);
 
@@ -61,10 +56,10 @@ class Neo4jTwitterUserRelationshipHandler implements  TwitterUserRelationshipHan
         log.debug("Twitter user " + this.twitterUser.getId() +
                 " -> retweeted -> Twitter user " + twitterUser.getId());
 
+        Transaction tx = graphDb.beginTx();
+
         Node userNode = this.getOrCreateUserNode(this.twitterUser);
         Node retweetedUserNode = this.getOrCreateUserNode(twitterUser);
-
-        Transaction tx = graphDb.beginTx();
 
         userNode.createRelationshipTo(retweetedUserNode, TwitterUserRelationships.RETWEETED);
 
@@ -76,10 +71,10 @@ class Neo4jTwitterUserRelationshipHandler implements  TwitterUserRelationshipHan
         log.debug("Twitter user " + this.twitterUser.getId() +
                 " -> is friend of -> Twitter user " + twitterUser.getId());
 
+        Transaction tx = graphDb.beginTx();
+
         Node userNode = this.getOrCreateUserNode(this.twitterUser);
         Node isFriendOfUserNode = this.getOrCreateUserNode(twitterUser);
-
-        Transaction tx = graphDb.beginTx();
 
         userNode.createRelationshipTo(isFriendOfUserNode, TwitterUserRelationships.IS_FRIEND_OF);
 
@@ -91,10 +86,10 @@ class Neo4jTwitterUserRelationshipHandler implements  TwitterUserRelationshipHan
         log.debug("Twitter user " + this.twitterUser.getId() +
                 " -> replied to -> Twitter user " + twitterUser.getId());
 
+        Transaction tx = graphDb.beginTx();
+
         Node userNode = this.getOrCreateUserNode(this.twitterUser);
         Node repliedToUserNode = this.getOrCreateUserNode(twitterUser);
-
-        Transaction tx = graphDb.beginTx();
 
         userNode.createRelationshipTo(repliedToUserNode, TwitterUserRelationships.REPLIED_TO);
 
@@ -106,10 +101,10 @@ class Neo4jTwitterUserRelationshipHandler implements  TwitterUserRelationshipHan
         log.debug("Twitter user " + this.twitterUser.getId() +
                 " -> mentioned -> Hashtag " + hashtag);
 
+        Transaction tx = graphDb.beginTx();
+
         Node userNode = this.getOrCreateUserNode(this.twitterUser);
         Node hashtagNode = this.getOrCreateHashtag(hashtag);
-
-        Transaction tx = graphDb.beginTx();
 
         userNode.createRelationshipTo(hashtagNode, TwitterUserRelationships.MENTIONED_HASHTAG);
 
@@ -121,10 +116,10 @@ class Neo4jTwitterUserRelationshipHandler implements  TwitterUserRelationshipHan
         log.debug("Twitter user " + this.twitterUser.getId() +
                 " -> mentioned -> Topic " + topic);
 
+        Transaction tx = graphDb.beginTx();
+
         Node userNode = this.getOrCreateUserNode(this.twitterUser);
         Node topicNode= this.getOrCreateTopic(topic);
-
-        Transaction tx = graphDb.beginTx();
 
         userNode.createRelationshipTo(topicNode, TwitterUserRelationships.MENTIONED_TOPIC);
 
@@ -142,23 +137,13 @@ class Neo4jTwitterUserRelationshipHandler implements  TwitterUserRelationshipHan
             return it.next();
         }
 
-        Transaction tx = graphDb.beginTx();
-
         Node userNode = graphDb.createNode(Neo4jTwitterUserDao.TWITTER_USER_NODE_LABEL);
         userNode.setProperty(Neo4jTwitterUserDao.TWITTER_USER_ID_PROP, twitterUser.getId());
-
-        tx.success();
 
         log.debug("Twitter user node " + twitterUser.getId() + " successfully created!");
 
         return userNode;
     }
-
-    protected static final String HASHTAG_NAME_PROP = "hashtag";
-    protected static final Label HASHTAG_LABEL = () -> "hashtag";
-
-    protected static final String TOPIC_NAME_PROP = "topic";
-    protected static final Label TOPIC_LABEL = () -> "topic";
 
     private Node getOrCreateHashtag(String hashtag) {
         ResourceIterator<Node> it = graphDb
@@ -170,12 +155,8 @@ class Neo4jTwitterUserRelationshipHandler implements  TwitterUserRelationshipHan
             return it.next();
         }
 
-        Transaction tx = graphDb.beginTx();
-
         Node hashtagNode = graphDb.createNode(HASHTAG_LABEL);
         hashtagNode.setProperty(HASHTAG_NAME_PROP, hashtag);
-
-        tx.success();
 
         log.debug("Hashtag node " + hashtag + " successfully created!");
 
@@ -192,12 +173,8 @@ class Neo4jTwitterUserRelationshipHandler implements  TwitterUserRelationshipHan
             return it.next();
         }
 
-        Transaction tx = graphDb.beginTx();
-
         Node hashtagNode = graphDb.createNode(TOPIC_LABEL);
         hashtagNode.setProperty(TOPIC_NAME_PROP, topic);
-
-        tx.success();
 
         log.debug("Hashtag node " + topic + " successfully created!");
 

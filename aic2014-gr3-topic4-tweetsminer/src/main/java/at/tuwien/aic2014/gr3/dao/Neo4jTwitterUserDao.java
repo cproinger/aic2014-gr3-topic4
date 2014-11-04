@@ -7,12 +7,12 @@ import org.neo4j.graphdb.*;
 public class Neo4jTwitterUserDao implements TwitterUserDao {
 
     private final static Logger log = Logger.getLogger(Neo4jTwitterUserDao.class);
-    protected final static String TWITTER_USER_ID_PROP = "twitterUserId";
+    public final static String TWITTER_USER_ID_PROP = "twitterUserId";
 
     private GraphDatabaseService graphDb;
     private TwitterUserRelationshipHandlerFactory twitterUserRelationshipHandlerFactory;
 
-    protected final static Label TWITTER_USER_NODE_LABEL = () -> "TwitterUser";
+    public final static Label TWITTER_USER_NODE_LABEL = () -> "TwitterUser";
 
     public void setGraphDb(GraphDatabaseService graphDb) {
         this.graphDb = graphDb;
