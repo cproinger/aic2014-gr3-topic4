@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 import at.tuwien.aic2014.gr3.docstore.DocStoreConfig;
+import twitter4j.TwitterFactory;
 import twitter4j.TwitterStreamFactory;
 
 @Configuration
@@ -16,5 +17,10 @@ public class TwitterConfig {
 	@Bean
 	public TwitterStreamFactory twitterStreamFactory() {
 		return new TwitterStreamFactory();
+	}
+	
+	@Bean
+	public TwitterFactory twitterFactory() {
+		return new TwitterFactory();
 	}
 }
