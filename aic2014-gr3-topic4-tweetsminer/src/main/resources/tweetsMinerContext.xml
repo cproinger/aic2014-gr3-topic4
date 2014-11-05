@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="mongoClient" class="com.mongodb.MongoClient">
+        
+    </bean>
+
+    <bean id="db" factory-bean="mongoClient" factory-method="getDB">
+        <constructor-arg type="java.lang.String" value="mydb"/>
+    </bean>
+    
+    <bean id="tweetsRepository" class="at.tuwien.aic2014.gr3.docstore.MongoTweetRepository" autowire="byName">
+    </bean>
+
+    <bean id="mentionedUsersStatusProcessor" class="at.tuwien.aic2014.gr3.tweetsminer.MentionedUsersTweetProcessor">
+
+    </bean>
+
+    <bean id="tweetsMiner" class="at.tuwien.aic2014.gr3.tweetsminer.TweetsMiner">
+        <property name="tweetRepository" ref="tweetsRepository"/>
+        <property name="tweetProcessors">
+            <list>
+                <ref bean="mentionedUsersStatusProcessor"/>
+            </list>
+        </property>
+    </bean>
+</beans>
