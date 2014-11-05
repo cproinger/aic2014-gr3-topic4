@@ -8,6 +8,7 @@
         <artifactId>aic2014-gr3-topic4-parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
+    <artifactId>aic2014-gr3-topic4-sql</artifactId>
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -28,7 +29,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    <artifactId>aic2014-gr3-topic4-sql</artifactId>
-
-
 </project>
