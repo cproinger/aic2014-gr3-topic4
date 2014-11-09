@@ -20,7 +20,7 @@ public class TwitterConfig {
 	}
 	
 	@Bean
-	public TwitterFactory twitterFactory() {
-		return new TwitterFactory();
+	public Twitter twitterFactory() {
+		return TwitterFactory.getSingleton();
 	}
 }

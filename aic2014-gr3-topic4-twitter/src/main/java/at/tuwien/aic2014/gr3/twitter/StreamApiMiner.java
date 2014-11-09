@@ -13,10 +13,12 @@ import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.StatusListener;
+import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterObjectFactory;
 import twitter4j.TwitterStream;
 import twitter4j.TwitterStreamFactory;
+import twitter4j.User;
 import at.tuwien.aic2014.gr3.shared.TweetRepository;
 
 /**
@@ -28,8 +30,19 @@ public class StreamApiMiner {
 	
 	private StatusListener listener = new StatusListener() {
 		public void onStatus(Status status) {
-			System.out.println(status + ": " + status.getRetweetedStatus());
+			
+			//nur englische tweets speichern. (deutsche gibts zu wenige)
+			if(!"en".equals(status.getLang()))
+				return;
+			
+			if(missingCount(status)) {
+				return;
+			}
+			//https://dev.twitter.com/overview/api/tweets
+			System.out.println(status.getText());
 			String rawJSON = TwitterObjectFactory.getRawJSON(status);
+			//TODO: da doppelte nachrichten kommen können sollten
+			//wir einen index auf die tweet-id legen (und ev. write-concern umstellen). 
 			tweetRepository.save(rawJSON);
 			
 //			try {
@@ -41,6 +54,19 @@ public class StreamApiMiner {
 //				// TODO Auto-generated catch block
 //				e.printStackTrace();
 //			}
+		}
+
+		private boolean missingCount(Status status) {
+			//in rare cases this field will be omitted by sending -1
+			//https://dev.twitter.com/streaming/overview/processing
+			User user = status.getUser();
+			if(user.getFavouritesCount() == -1)
+				return true;
+			if(user.getFollowersCount() == -1)
+				return true;
+			if(user.getFriendsCount() == -1)
+				return true;
+			return false;
 		}
 
 		public void onDeletionNotice(
@@ -71,16 +97,21 @@ public class StreamApiMiner {
 	@Autowired
 	private TwitterStreamFactory twitterStreamFactory;
 	
+//	@Autowired
+//	private Twitter twitter;
+	
 	@Autowired
 	private TweetRepository tweetRepository;
 
 	public void start() throws TwitterException, IOException {
-		
 		twitterStream = twitterStreamFactory.getInstance();
 		twitterStream.addListener(listener);
-		String[] track = new String[] { "car" };
-		String[] language = new String[] { "de" };
-		twitterStream.filter(new FilterQuery().track(track ).language(language));
+//		String[] track = new String[] { "car" };
+//		String[] language = new String[] { "de", "en" };
+//		twitterStream.filter(new FilterQuery()
+//					.track(track )// man muss das angeben, schränkt allerdings die tweets stark ein
+//					.language(language)
+//		);
 		// sample() method internally creates a thread which manipulates
 		// TwitterStream and calls these adequate listener methods continuously.
 		twitterStream.sample();
@@ -103,7 +134,7 @@ public class StreamApiMiner {
 			e.printStackTrace();
 		}
 		try {
-			Thread.sleep(30_000L);
+			Thread.sleep(90_000L);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
