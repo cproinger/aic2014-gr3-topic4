@@ -134,7 +134,7 @@ public class StreamApiMiner {
 			e.printStackTrace();
 		}
 		try {
-			Thread.sleep(90_000L);
+			Thread.sleep(2 * 60_000L);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -142,4 +142,51 @@ public class StreamApiMiner {
 		m.shutdown();
 		ctx.close();
 	}
+	
+	
+	// statuses_max - statuses_min => wieviele tweets hat der user in dem zeitraum gemacht
+	//   tweets müssen aber nicht in db sein. 
+	/*
+db.streamingTweets.aggregate([
+    {$match : {  "user.followers_count" : { $gt : 0} }}, 
+{ $group : { _id : "$user.id", followers : {$max : "$user.followers_count"}, 
+    friends : {$max : "$user.friends_count"}, 
+    statuses_max : {$max : "$user.statuses_count"},
+    statuses_min : {$min : "$user.statuses_count"} }},
+{ $match : { "followers" : { $gt : 0 }, "statuses_min" : {$lt : "$statuses_max"} }}
+])
+	 */
+	
+	//wieviele tweets sind in der db, und wieviele tweets hat der 
+	//user in dem zeitraum erstellt
+	/*
+db.streamingTweets.aggregate([
+{ $match : { "user.statuses_count" : {$gt : 0}} },
+{ $group : { _id : "$user.id", 
+    anz : {$sum : 1}, 
+    statuses_max : {$max : "$user.statuses_count"},
+    statuses_min : {$min : "$user.statuses_count"} }}, 
+{ $project : { tweetrange : {$subtract : ["$statuses_max" , "$statuses_min"]}
+    , anz : "$anz", 
+statuses_min : "$statuses_min", statuses_max : "$statuses_max"}}, 
+{ $match : { tweetrange : { $gt : 0 } }}, 
+{ $sort : {tweetrange : -1}}
+])
+	 */
+	
+	//tweet-anzahl mit usernamen
+	/*
+db.streamingTweets.aggregate([
+{ $match : { "user.statuses_count" : {$gt : 0}, "user.followers_count" : {$gt : 500} }},
+{ $group : { _id : "$user.id", uname : {$max : "$user.screen_name"}, name : {$max : "$user.name"},
+    anz : {$sum : 1}, 
+    statuses_max : {$max : "$user.statuses_count"},
+    statuses_min : {$min : "$user.statuses_count"} }}, 
+{ $project : { tweetrange : {$subtract : ["$statuses_max" , "$statuses_min"]}
+    , anz : "$anz", uname : "$uname", name : "$name",
+statuses_min : "$statuses_min", statuses_max : "$statuses_max"}}, 
+{ $match : { tweetrange : { $gt : 0 } }}, 
+{ $sort : {tweetrange : -1}}
+])
+	 */
 }
