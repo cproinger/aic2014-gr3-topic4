@@ -19,7 +19,7 @@ import java.util.Map;
 import static org.junit.Assert.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("classpath:tweetsMinerTestContext.xml")
+@ContextConfiguration("classpath:daoTestContext.xml")
 public class Neo4jTwitterUserDaoTest {
 
     private static final String dropAllQuery =

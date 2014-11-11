@@ -12,11 +12,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class MentionedUsersStatusProcessorTest extends TweetProcessorTest {
 
     @Autowired
-    private TweetProcessor mentionedUsersStatusProcessor;
+    private TwitterStatusProcessor mentionedUsersStatusProcessor;
 
     @Test
     public void testProcess() throws Exception {
-        mentionedUsersStatusProcessor.process(getTestingTweetJson());
+        mentionedUsersStatusProcessor.process(getTestingTwitterStatus());
 
         assertUserRelationship(100, TwitterUserRelationships.MENTIONED.name(), 101, 1);
         assertUserRelationship(100, TwitterUserRelationships.MENTIONED.name(), 102, 1);

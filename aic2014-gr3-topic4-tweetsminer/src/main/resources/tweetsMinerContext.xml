@@ -14,13 +14,13 @@
     <bean id="tweetsRepository" class="at.tuwien.aic2014.gr3.docstore.MongoTweetRepository" autowire="byName">
     </bean>
 
-    <bean id="mentionedUsersStatusProcessor" class="at.tuwien.aic2014.gr3.tweetsminer.MentionedUsersTweetProcessor">
+    <bean id="mentionedUsersStatusProcessor" class="at.tuwien.aic2014.gr3.tweetsminer.MentionedUsersTwitterStatusProcessor">
 
     </bean>
 
-    <bean id="tweetsMiner" class="at.tuwien.aic2014.gr3.tweetsminer.TweetsMiner">
+    <bean id="tweetsMiner" class="at.tuwien.aic2014.gr3.tweetsminer.TwitterStreamingStatusesMiner">
         <property name="tweetRepository" ref="tweetsRepository"/>
-        <property name="tweetProcessors">
+        <property name="twitterStatusProcessors">
             <list>
                 <ref bean="mentionedUsersStatusProcessor"/>
             </list>

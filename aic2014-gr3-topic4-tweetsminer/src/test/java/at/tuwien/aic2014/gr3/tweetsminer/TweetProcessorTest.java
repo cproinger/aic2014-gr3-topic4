@@ -2,7 +2,6 @@ package at.tuwien.aic2014.gr3.tweetsminer;
 
 import at.tuwien.aic2014.gr3.dao.Neo4jTwitterUserDao;
 import at.tuwien.aic2014.gr3.dao.Neo4jTwitterUserRelationshipHandler;
-import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -15,6 +14,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import twitter4j.Status;
+import twitter4j.TwitterObjectFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,10 +38,10 @@ public abstract class TweetProcessorTest {
     @Autowired
     private ExecutionEngine engine;
 
-    @Value("classpath:testingTweet.json")
+    @Value("classpath:testingTwitterStatus.json")
     private Resource testingTweetResource;
 
-    private JSONObject testingTweetJson;
+    private Status testingTwitterStatus;
 
     @Before
     public void setUp() throws Exception {
@@ -50,7 +51,7 @@ public abstract class TweetProcessorTest {
             jsonString += sc.nextLine();
         sc.close();
 
-        testingTweetJson = new JSONObject(jsonString);
+        testingTwitterStatus = TwitterObjectFactory.createStatus(jsonString);
     }
 
     @After
@@ -62,8 +63,8 @@ public abstract class TweetProcessorTest {
         tx.success();
     }
 
-    protected JSONObject getTestingTweetJson() {
-        return testingTweetJson;
+    protected Status getTestingTwitterStatus() {
+        return testingTwitterStatus;
     }
 
     protected void assertUserRelationship(long u1Id, String relationship, long u2Id, int degree) {

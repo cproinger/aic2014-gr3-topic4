@@ -2,20 +2,18 @@ package at.tuwien.aic2014.gr3.tweetsminer;
 
 import at.tuwien.aic2014.gr3.shared.TweetRepository;
 import org.apache.log4j.Logger;
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.neo4j.cypher.ExecutionResult;
 import twitter4j.Status;
-import twitter4j.TwitterObjectFactory;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class TweetsMiner implements Runnable {
+public class TwitterStreamingStatusesMiner implements Runnable {
 
-    private static final Logger log = Logger.getLogger(TweetsMiner.class);
+    private static final Logger log = Logger.getLogger(TwitterStreamingStatusesMiner.class);
 
-    private List<TweetProcessor> tweetProcessors = new ArrayList<>();
+    private List<TwitterStatusProcessor> twitterStatusProcessors = new ArrayList<>();
     private TweetRepository tweetRepository;
 
     private boolean running = false;
@@ -24,8 +22,8 @@ public class TweetsMiner implements Runnable {
         this.tweetRepository = tweetRepository;
     }
 
-    public void setTweetProcessors(List<TweetProcessor> tweetProcessors) {
-        this.tweetProcessors = tweetProcessors;
+    public void setTwitterStatusProcessors(List<TwitterStatusProcessor> twitterStatusProcessors) {
+        this.twitterStatusProcessors = twitterStatusProcessors;
     }
 
     @Override
@@ -41,11 +39,11 @@ public class TweetsMiner implements Runnable {
             if (isLanguageSupported(status)) {
                 log.debug("Processing tweet " + status.getId() + "...");
 
-                for (TweetProcessor processor : tweetProcessors) {
+                for (TwitterStatusProcessor processor : twitterStatusProcessors) {
                     try {
-                        processor.process(new JSONObject(TwitterObjectFactory.getRawJSON(status)));
+                        processor.process(status);
                     }
-                    catch (JSONException e) {
+                    catch (Exception e) {
                         log.warn ("Exception thrown during tweet process step: " + e.getMessage());
                     }
                 }
