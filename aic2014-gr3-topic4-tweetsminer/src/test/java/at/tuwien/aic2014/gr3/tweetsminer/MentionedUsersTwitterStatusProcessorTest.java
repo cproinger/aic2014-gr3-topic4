@@ -6,10 +6,11 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import twitter4j.UserMentionEntity;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:tweetsMinerTestContext.xml")
-public class MentionedUsersStatusProcessorTest extends TweetProcessorTest {
+public class MentionedUsersTwitterStatusProcessorTest extends TweetProcessorTest {
 
     @Autowired
     private TwitterStatusProcessor mentionedUsersStatusProcessor;
@@ -18,7 +19,9 @@ public class MentionedUsersStatusProcessorTest extends TweetProcessorTest {
     public void testProcess() throws Exception {
         mentionedUsersStatusProcessor.process(getTestingTwitterStatus());
 
-        assertUserRelationship(100, TwitterUserRelationships.MENTIONED.name(), 101, 1);
-        assertUserRelationship(100, TwitterUserRelationships.MENTIONED.name(), 102, 1);
+        for (UserMentionEntity u : getTestingTwitterStatus().getUserMentionEntities()) {
+            assertUserRelationship(getTestingTwitterStatus().getUser().getId(),
+                    TwitterUserRelationships.MENTIONED.name(), u.getId(), 1);
+        }
     }
 }

@@ -28,4 +28,19 @@
           scope="singleton" lazy-init="true">
         <property name="twitterUserDao" ref="neo4jTwitterUserDao"/>
     </bean>
+
+    <bean id="mentionedHashtagsStatusProcessor" class="at.tuwien.aic2014.gr3.tweetsminer.MentionedHashtagsTwitterStatusProcessor"
+          scope="singleton" lazy-init="true">
+        <property name="twitterUserDao" ref="neo4jTwitterUserDao"/>
+    </bean>
+
+    <bean id="retweetedUserStatusProcessor" class="at.tuwien.aic2014.gr3.tweetsminer.RetweetedUserTwitterStatusProcessor"
+          scope="singleton" lazy-init="true">
+        <property name="twitterUserDao" ref="neo4jTwitterUserDao"/>
+    </bean>
+
+    <bean id="repliedToStatusProcessor" class="at.tuwien.aic2014.gr3.tweetsminer.RepliedToTwitterStatusProcessor"
+          scope="singleton" lazy-init="true">
+        <property name="twitterUserDao" ref="neo4jTwitterUserDao"/>
+    </bean>
 </beans>

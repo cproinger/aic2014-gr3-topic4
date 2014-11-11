@@ -2,7 +2,6 @@ package at.tuwien.aic2014.gr3.tweetsminer;
 
 import at.tuwien.aic2014.gr3.shared.TweetRepository;
 import org.apache.log4j.Logger;
-import org.neo4j.cypher.ExecutionResult;
 import twitter4j.Status;
 
 import java.util.ArrayList;
