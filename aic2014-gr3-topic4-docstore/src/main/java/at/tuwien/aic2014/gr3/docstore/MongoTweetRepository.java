@@ -1,5 +1,6 @@
 package at.tuwien.aic2014.gr3.docstore;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 
@@ -11,8 +12,11 @@ import org.springframework.stereotype.Repository;
 import twitter4j.Status;
 import twitter4j.TwitterException;
 import twitter4j.TwitterObjectFactory;
+import at.tuwien.aic2014.gr3.domain.StatusRange;
 import at.tuwien.aic2014.gr3.shared.TweetRepository;
 
+import com.mongodb.AggregationOutput;
+import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -66,6 +70,10 @@ public class MongoTweetRepository implements TweetRepository {
 
 	@Autowired
 	private DB db;
+
+	private boolean streamingTweetsIndexesEnsured;
+
+	private boolean userTweetsIndexesEnsured;
 	
 	/**
 	 * @param json
@@ -77,11 +85,29 @@ public class MongoTweetRepository implements TweetRepository {
 		// handle dates correctly
 		// but it's a start
 		DBObject obj = (DBObject) JSON.parse(json);
-		getCollection().save(obj);
+		//upsert. 
+		getCollection().update(new BasicDBObject("id", obj.get("id")), obj, true, false);
+		DBObject tweetUser = (DBObject) obj.get("user");
+		tweetUser.put("original", 0);
+		tweetUser.put("tweetId", obj.get("id"));
+		getUserTweetsCollection().save(tweetUser);
+		DBObject retweetedStatus = (DBObject) obj.get("retweeted_status");
+		if(retweetedStatus != null) {
+			DBObject retweetedUser = (DBObject) retweetedStatus.get("user");
+			retweetedUser.put("original", 1);
+			retweetedUser.put("tweetId", retweetedStatus.get("id"));
+			getUserTweetsCollection().save(retweetedUser);
+		}
 	}
 
 	private DBCollection getCollection() {
-		return db.getCollection("streamingTweets");
+		DBCollection streamingTweets = db.getCollection("streamingTweets");
+		if(!streamingTweetsIndexesEnsured) {
+			streamingTweets.createIndex(new BasicDBObject("id", 1));
+			streamingTweets.createIndex(new BasicDBObject("user.id", 1));
+			streamingTweetsIndexesEnsured = true;
+		}
+		return streamingTweets;
 	}
 
 	@Override
@@ -92,5 +118,61 @@ public class MongoTweetRepository implements TweetRepository {
 		LOG.info("tweetsWithUnprocressedUser: " + tweetsWithUnprocressedUser.count());
 		
 		return new MarkProcessedStatusIterator(tweetsWithUnprocressedUser, AIC_PROCESSED_USER);
+	}
+	
+	@Override
+	public Iterator<StatusRange> iterateStatusRanges() {
+		DBObject group = new BasicDBObject("$group", new BasicDBObject("_id", "$id")
+				.append("min_tweet", new BasicDBObject("$min", "$tweetId"))
+				.append("max_tweet", new BasicDBObject("$max", "$tweetId"))
+				.append("min_status", new BasicDBObject("$min", "$statuses_count"))
+				.append("max_status", new BasicDBObject("$max", "$statuses_count"))
+				.append("original", new BasicDBObject("$sum", "$original")));
+		
+		BasicDBList maxMinusMin = new BasicDBList();
+		maxMinusMin.add("$max_status");
+		maxMinusMin.add("$min_status");
+		DBObject calcStatusRange = new BasicDBObject("$project", new BasicDBObject()
+				.append("status_range", new BasicDBObject("$subtract", maxMinusMin))
+				.append("original", 1)
+				.append("max_status", 1)
+				.append("min_status", 1)
+				.append("max_tweet", 1)
+				.append("min_tweet", 1));
+		DBObject matchMoreThanOneStatus = new BasicDBObject("$match", new BasicDBObject("status_range", new BasicDBObject("$gt", 0)));
+		
+		DBObject sortByOriginalAndStatusRange = new BasicDBObject("$sort", new BasicDBObject()
+			.append("orginal", -1)
+			.append("status_range", -1));
+		
+		AggregationOutput stats = getUserTweetsCollection().aggregate(
+				Arrays.asList(group, calcStatusRange, matchMoreThanOneStatus, sortByOriginalAndStatusRange));
+		Iterator<DBObject> dbos = stats.results().iterator();
+		return new Iterator<StatusRange>() {
+
+			@Override
+			public boolean hasNext() {
+				return dbos.hasNext();
+			}
+
+			@Override
+			public StatusRange next() {
+				DBObject o = dbos.next();
+				long min = ((Number) o.get("min_tweet")).longValue();
+				long max = ((Number) o.get("max_tweet")).longValue();
+				//niedrigere long-werte werden von JSON.parse in int übersetzt und sind dann
+				//so in der DB. also muss man sicherheitshalber so auf den long-wert kommen. 
+				long userId = ((Number) o.get("_id")).longValue();
+				return new StatusRange(userId, min, max);
+			}
+		};
+	}
+
+	private DBCollection getUserTweetsCollection() {
+		DBCollection userTweets = db.getCollection("user_tweets");
+		if(!userTweetsIndexesEnsured) {
+			userTweets.createIndex(new BasicDBObject("id", 1));
+		}
+		return userTweets;
 	}
 }
