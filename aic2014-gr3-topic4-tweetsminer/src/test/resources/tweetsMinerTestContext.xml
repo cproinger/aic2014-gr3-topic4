@@ -1,46 +1,135 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd"
+       default-lazy-init="true">
 
+    <!-- DB config -->
     <bean id="graphdbFactory" class="org.neo4j.test.TestGraphDatabaseFactory" lazy-init="true"/>
 
-    <bean id="graphdb" scope="singleton" class="org.neo4j.graphdb.GraphDatabaseService" destroy-method="shutdown"
-          factory-bean="graphdbFactory" factory-method="newImpermanentDatabase" lazy-init="true"/>
+    <bean id="graphdb" destroy-method="shutdown" factory-bean="graphdbFactory"
+          factory-method="newImpermanentDatabase" lazy-init="true"/>
 
-    <bean id="executionEngine" class="org.neo4j.cypher.ExecutionEngine" scope="singleton" lazy-init="true">
+    <bean id="executionEngine" class="org.neo4j.cypher.ExecutionEngine" lazy-init="true">
         <constructor-arg ref="graphdb"/>
         <constructor-arg value="DEV_NULL"/>
     </bean>
 
+    <!-- DAO Layer -->
     <bean id="twitterUserRelationshipHandlerFactory" class="at.tuwien.aic2014.gr3.dao.TwitterUserRelationshipHandlerFactory"
-            scope="singleton" lazy-init="true">
+          lazy-init="true">
         <property name="graphDb" ref="graphdb"/>
     </bean>
 
     <bean id="neo4jTwitterUserDao" class="at.tuwien.aic2014.gr3.dao.Neo4jTwitterUserDao"
-          scope="singleton" lazy-init="true">
+          lazy-init="true">
         <property name="graphDb" ref="graphdb"/>
         <property name="twitterUserRelationshipHandlerFactory" ref="twitterUserRelationshipHandlerFactory"/>
     </bean>
 
+    <!-- Twitter status processors -->
     <bean id="mentionedUsersStatusProcessor" class="at.tuwien.aic2014.gr3.tweetsminer.MentionedUsersTwitterStatusProcessor"
-          scope="singleton" lazy-init="true">
+          lazy-init="true">
         <property name="twitterUserDao" ref="neo4jTwitterUserDao"/>
     </bean>
 
     <bean id="mentionedHashtagsStatusProcessor" class="at.tuwien.aic2014.gr3.tweetsminer.MentionedHashtagsTwitterStatusProcessor"
-          scope="singleton" lazy-init="true">
+          lazy-init="true">
         <property name="twitterUserDao" ref="neo4jTwitterUserDao"/>
     </bean>
 
     <bean id="retweetedUserStatusProcessor" class="at.tuwien.aic2014.gr3.tweetsminer.RetweetedUserTwitterStatusProcessor"
-          scope="singleton" lazy-init="true">
+          lazy-init="true">
         <property name="twitterUserDao" ref="neo4jTwitterUserDao"/>
     </bean>
 
     <bean id="repliedToStatusProcessor" class="at.tuwien.aic2014.gr3.tweetsminer.RepliedToTwitterStatusProcessor"
-          scope="singleton" lazy-init="true">
+          lazy-init="true">
         <property name="twitterUserDao" ref="neo4jTwitterUserDao"/>
+    </bean>
+
+    <bean id="topicExtractionStatusProcessor" class="at.tuwien.aic2014.gr3.tweetsminer.TopicExtractionTwitterStatusProcessor"
+          lazy-init="true">
+        <property name="twitterUserDao" ref="neo4jTwitterUserDao"/>
+        <property name="tweetFilterChain" ref="tweetFilterChain"/>
+    </bean>
+
+
+    <!-- Topic extractor filters -->
+    <bean id="tweetFilterChain" class="at.tuwien.aic2014.gr3.tweetsminer.filters.TweetFilterChain"
+          lazy-init="true">
+        <constructor-arg name="tweetFiltersChain">
+                <list>
+                    <ref bean="removeRetweetUserFilter"/>
+                    <ref bean="removeHashtagMentionsFilter"/>
+                    <ref bean="removeTwitterUserMentionsFilter"/>
+                    <ref bean="removeUrlsFilter"/>
+                    <ref bean="smartTokenizerTweetFilter"/>
+                </list>
+        </constructor-arg>
+    </bean>
+
+    <bean id="removeRetweetUserFilter" class="at.tuwien.aic2014.gr3.tweetsminer.filters.RemoveRetweetHeaderTweetFilter"
+          lazy-init="true"/>
+
+    <bean id="removeTwitterUserMentionsFilter" class="at.tuwien.aic2014.gr3.tweetsminer.filters.RemoveUserMentionsTweetFilter"
+          lazy-init="true"/>
+
+    <bean id="removeHashtagMentionsFilter" class="at.tuwien.aic2014.gr3.tweetsminer.filters.RemoveHashtagsTweetFilter"
+          lazy-init="true"/>
+
+    <bean id="removeUrlsFilter" class="at.tuwien.aic2014.gr3.tweetsminer.filters.RemoveUrlsTweetFilter"
+          lazy-init="true"/>
+
+    <bean id="smartTokenizerTweetFilter" class="at.tuwien.aic2014.gr3.tweetsminer.filters.SmartTokenizerTweetFilter"
+          lazy-init="true">
+        <property name="tokenizer" ref="opennlpTokenizer"/>
+        <property name="nameFinder" ref="opennlpNameFinder"/>
+        <property name="stopwords">
+            <bean factory-bean="enStopWords" factory-method="readNext"/>
+        </property>
+    </bean>
+
+    <!-- opennlp config -->
+    <bean id="opennlpTokenizer" class="opennlp.tools.tokenize.TokenizerME">
+        <constructor-arg>
+            <bean class="opennlp.tools.tokenize.TokenizerModel">
+                <constructor-arg ref="enTokenizerTrainedData"/>
+            </bean>
+        </constructor-arg>
+    </bean>
+
+    <bean id="opennlpNameFinder" class="opennlp.tools.namefind.NameFinderME">
+        <constructor-arg>
+            <bean class="opennlp.tools.namefind.TokenNameFinderModel">
+                <constructor-arg ref="enPersonNamesTrainedData"/>
+            </bean>
+        </constructor-arg>
+    </bean>
+
+    <!-- Resources -->
+    <bean id="enTokenizerTrainedDataResource" class="org.springframework.core.io.ClassPathResource">
+        <constructor-arg value="en-token.bin"/>
+    </bean>
+    <bean id="enTokenizerTrainedData" class="java.io.FileInputStream"
+          factory-bean="enTokenizerTrainedDataResource" factory-method="getFile"/>
+
+    <bean id="enPersonNamesTrainedDataResource" class="org.springframework.core.io.ClassPathResource">
+        <constructor-arg value="en-ner-person.bin"/>
+    </bean>
+    <bean id="enPersonNamesTrainedData" class="java.io.FileInputStream"
+          factory-bean="enPersonNamesTrainedDataResource" factory-method="getFile"/>
+
+    <bean id="enStopwordsResource" class="org.springframework.core.io.ClassPathResource">
+        <constructor-arg value="stopwords.csv"/>
+    </bean>
+    <bean id="enStopWords" class="au.com.bytecode.opencsv.CSVReader">
+        <constructor-arg>
+            <bean class="java.io.FileReader">
+                <constructor-arg>
+                    <bean factory-bean="enStopwordsResource" factory-method="getFile"/>
+                </constructor-arg>
+            </bean>
+        </constructor-arg>
     </bean>
 </beans>

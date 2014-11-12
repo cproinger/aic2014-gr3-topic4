@@ -11,7 +11,7 @@
         <constructor-arg type="java.lang.String" value="mydb"/>
     </bean>
     
-    <bean id="tweetsRepository" class="at.tuwien.aic2014.gr3.docstore.MongoTweetRepository" autowire="byName">
+    <bean id="tweetsRepository" class="at.tuwien.aic2014.gr3.docstore.MongoTweetRepository">
     </bean>
 
     <bean id="mentionedUsersStatusProcessor" class="at.tuwien.aic2014.gr3.tweetsminer.MentionedUsersTwitterStatusProcessor">

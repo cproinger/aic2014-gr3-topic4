@@ -4,7 +4,6 @@ import at.tuwien.aic2014.gr3.dao.Neo4jTwitterUserDao;
 import at.tuwien.aic2014.gr3.domain.TwitterUser;
 import org.apache.log4j.Logger;
 import twitter4j.Status;
-import twitter4j.UserMentionEntity;
 
 public class RetweetedUserTwitterStatusProcessor implements TwitterStatusProcessor {
 
