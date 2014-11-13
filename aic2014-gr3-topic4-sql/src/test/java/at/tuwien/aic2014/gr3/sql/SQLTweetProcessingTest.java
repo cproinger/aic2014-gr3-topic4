@@ -15,6 +15,14 @@ public class SQLTweetProcessingTest {
 
     @Test
     public void testSQLProcessing(){
-        sqlTweet.safeTweetIntoSQL("test");
+        try {
+            sqlTweet.connectToSQL();
+            sqlTweet.initializeSQLDatabase();
+            //sqlTweet.safeTweetIntoSQL("test");
+            sqlTweet.closeDownConnection();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 }
