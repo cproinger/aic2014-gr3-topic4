@@ -1,3 +1,4 @@
+
 package at.tuwien.aic2014.gr3.docstore;
 
 import static org.junit.Assert.assertEquals;
@@ -34,13 +35,13 @@ public class MongoTweetRepositoryTest {
 
 	@Test
 	public void test() {
-		repo.save("{ test : \"test\" }");
+		repo.save("{ test : \"test\", user : { name : \"test\"} }");
 	}
 
 	@Test
 	public void testIterateTweetsWithUnprocessedUser() {
-		repo.save(" { id : 123, text : \"test\"}");
-		repo.save(" { id : 1234, text : \"test\", aic_processed_user : true }");
+		repo.save(" { id : 123, text : \"test\", user : { name : \"test\"}}");
+		repo.save(" { id : 1234, text : \"test\", aic_processed_user : true, user : { name : \"test\"} }");
 
 		assertEquals(1, iterateAndMarkProcessed());
 		assertEquals(0, iterateAndMarkProcessed());
