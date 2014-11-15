@@ -14,6 +14,12 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>aic2014-gr3-topic4</groupId>
+			<artifactId>aic2014-gr3-topic4-docstore</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
 		</dependency>
@@ -26,6 +32,11 @@
 		</dependency>
 
 		<!-- vaadin -->
+		<dependency>
+			<groupId>org.vaadin.spring</groupId>
+			<artifactId>spring-vaadin</artifactId>
+			<version>0.0.2.1</version>
+		</dependency>
 		<dependency>
 			<groupId>com.vaadin.addon</groupId>
 			<artifactId>vaadin-charts</artifactId>
@@ -177,7 +188,7 @@
 			</plugins>
 		</pluginManagement>
 	</build>
-	
+
 	<repositories>
 		<repository>
 			<id>vaadin-addons</id>
