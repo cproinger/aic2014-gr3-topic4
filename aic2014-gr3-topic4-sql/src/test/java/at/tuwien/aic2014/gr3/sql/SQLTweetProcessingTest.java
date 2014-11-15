@@ -3,6 +3,8 @@ package at.tuwien.aic2014.gr3.sql;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.IOException;
+
 /**
  * Created by buzz on 02.11.2014.
  */
@@ -24,5 +26,14 @@ public class SQLTweetProcessingTest {
             e.printStackTrace();
         }
 
+    }
+
+    @Test
+    public void testTextProcessing(){
+        try {
+            sqlTweet.safeTweetIntoSQL(null);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -1,10 +1,14 @@
 package at.tuwien.aic2014.gr3.sql;
 
 import at.tuwien.aic2014.gr3.shared.TweetProcessing;
+import net.sf.json.JSONObject;
+import net.sf.json.JSONSerializer;
 import org.h2.tools.DeleteDbFiles;
-import twitter4j.JSONException;
-import twitter4j.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.sql.*;
 
 /**
@@ -21,13 +25,29 @@ public class SQLTweetProcessing implements TweetProcessing {
     String password = "";
 
     @Override
-    public void safeTweetIntoSQL(String rawJSON) {
-        try {
-            JSONObject obj = new JSONObject("dump.json");
-            String id = obj.getJSONObject("id").toString();
-            System.out.println(id);
-        } catch (JSONException e) {
-            e.printStackTrace();
+    public void safeTweetIntoSQL(String rawJSON) throws IOException{
+        InputStream is =
+                getClass().getClassLoader().getResourceAsStream("at.tuwien.aic2014.gr3.sql/sample-json.txt");
+        BufferedReader in = new BufferedReader(new InputStreamReader(is));
+        String jsonTxt = in.readLine();
+        while(jsonTxt != null) {
+            JSONObject json = (JSONObject) JSONSerializer.toJSON(jsonTxt);
+            JSONObject user = json.getJSONObject("user");
+            long id = json.getLong("id");
+            String name = user.getString("name");
+            String screen_name = user.getString("screen_name");
+            String location = user.getString("location");
+            String description = json.getString("text");
+            boolean protected_value = user.getBoolean("protected");
+            boolean verified = user.getBoolean("verified");
+            int followers_count = user.getInt("followers_count");
+            int friends_count = user.getInt("friends_count");
+            int retweet_count = json.getInt("retweet_count");
+
+            System.out.println("Id: " + id);
+            System.out.println("Retweet_count: " + retweet_count);
+            System.out.println("Screen_name: " + screen_name);
+            jsonTxt = in.readLine();
         }
     }
 
@@ -36,8 +56,8 @@ public class SQLTweetProcessing implements TweetProcessing {
     public void initializeSQLDatabase() {
         try {
             Statement stat = conn.createStatement();
-            stat.execute("create table test(id int primary key, name varchar(255),screen_name varchar(255)," +
-                    "location varchar(255), url varchar(255),description varchar(255),protected boolean," +
+            stat.execute("create table test(id bigint primary key, name varchar(255),screen_name varchar(255)," +
+                    "location varchar(255), description varchar(255),protected boolean," +
                     "verified boolean,followers_count integer,friends_count integer, listed_count integer," +
                     " favourites_count integer, created_at datetime,language varchar(255)," +
                     "last_time_synched datetime)");
