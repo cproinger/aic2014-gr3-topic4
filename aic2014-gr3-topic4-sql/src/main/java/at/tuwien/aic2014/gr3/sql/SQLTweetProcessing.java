@@ -1,28 +1,24 @@
 package at.tuwien.aic2014.gr3.sql;
 
-import at.tuwien.aic2014.gr3.domain.TwitterUser;
-import at.tuwien.aic2014.gr3.domain.TwitterUserUtils;
-import at.tuwien.aic2014.gr3.shared.TweetProcessing;
-import at.tuwien.aic2014.gr3.shared.TweetRepository;
-import net.sf.json.JSONObject;
-import net.sf.json.JSONSerializer;
-
-import org.h2.tools.DeleteDbFiles;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import twitter4j.Status;
-import twitter4j.User;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.Iterator;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.stereotype.Service;
+
+import twitter4j.Status;
+import twitter4j.User;
+import at.tuwien.aic2014.gr3.docstore.DocStoreConfig;
+import at.tuwien.aic2014.gr3.domain.TwitterUser;
+import at.tuwien.aic2014.gr3.domain.TwitterUserUtils;
+import at.tuwien.aic2014.gr3.shared.TweetProcessing;
+import at.tuwien.aic2014.gr3.shared.TweetRepository;
 
 /**
  * Created with IntelliJ IDEA.
@@ -91,4 +87,11 @@ public class SQLTweetProcessing implements TweetProcessing {
 		}
 	}
 
+	public static void main(String[] args) {
+		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(
+				SqlConfig.class, DocStoreConfig.class);
+		SQLTweetProcessing m = ctx.getBean(SQLTweetProcessing.class);
+		m.processAll();
+		ctx.close();	
+	}
 }

@@ -10,6 +10,25 @@
 	<artifactId>aic2014-gr3-topic4-sql</artifactId>
 	<dependencies>
 		<dependency>
+			<groupId>aic2014-gr3-topic4</groupId>
+			<artifactId>aic2014-gr3-topic4-docstore</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>9.3-1102-jdbc41</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>1.4.182</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>aic2014-gr3-topic4-shared</artifactId>
 			<version>${project.version}</version>
