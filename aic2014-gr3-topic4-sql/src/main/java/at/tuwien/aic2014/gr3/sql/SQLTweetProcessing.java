@@ -1,15 +1,25 @@
 package at.tuwien.aic2014.gr3.sql;
 
+import at.tuwien.aic2014.gr3.domain.TwitterUser;
+import at.tuwien.aic2014.gr3.domain.TwitterUserUtils;
 import at.tuwien.aic2014.gr3.shared.TweetProcessing;
+import at.tuwien.aic2014.gr3.shared.TweetRepository;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
+
 import org.h2.tools.DeleteDbFiles;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import twitter4j.Status;
+import twitter4j.User;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.*;
+import java.util.Iterator;
 
 /**
  * Created with IntelliJ IDEA.
@@ -18,14 +28,36 @@ import java.sql.*;
  * Time: 12:59
  * To change this template use File | Settings | File Templates.
  */
+@Service
 public class SQLTweetProcessing implements TweetProcessing {
     Connection conn;
     String url = "jdbc:h2:~/name";
     String username = "sa";
     String password = "";
+	
+    private TweetRepository tweetRepo;
+    private SqlUserRepository userRepo;
 
+    @Autowired
+    public SQLTweetProcessing(TweetRepository tweetRepo, SqlUserRepository userRepo) {
+    	this.tweetRepo = tweetRepo;
+    	this.userRepo = userRepo;
+    }
+    
+
+	private void processStatus(Status stat) { 
+		TwitterUserUtils utils = new TwitterUserUtils();
+		User user = stat.getUser();
+		//gibt scheinbar welche ohne user???
+		if(user == null)
+			return;
+		TwitterUser tu = utils.create(user);
+		userRepo.save(tu);
+	}
+    
     @Override
     public void safeTweetIntoSQL(String rawJSON) throws IOException{
+    	//TODO remove. 
         InputStream is =
                 getClass().getClassLoader().getResourceAsStream("at.tuwien.aic2014.gr3.sql/sample-json.txt");
         BufferedReader in = new BufferedReader(new InputStreamReader(is));
@@ -85,4 +117,13 @@ public class SQLTweetProcessing implements TweetProcessing {
     public void closeDownConnection() throws SQLException {
         conn.close();
     }
+
+	public void processAll() {
+		for(Iterator<Status> it = tweetRepo.iterateTweetsWithUnprocessedUser(); it.hasNext(); ) {
+			Status stat = it.next();
+			processStatus(stat);
+			it.remove();
+		}
+	}
+
 }

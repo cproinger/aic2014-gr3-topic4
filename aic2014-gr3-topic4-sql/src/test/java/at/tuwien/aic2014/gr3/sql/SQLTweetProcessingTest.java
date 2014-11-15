@@ -1,39 +1,90 @@
 package at.tuwien.aic2014.gr3.sql;
 
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.junit.Assert.*;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.portlet.MockActionRequest;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import twitter4j.Status;
+import twitter4j.TwitterException;
+import twitter4j.TwitterObjectFactory;
+import at.tuwien.aic2014.gr3.domain.StatusRange;
+import at.tuwien.aic2014.gr3.shared.TweetProcessing;
+import at.tuwien.aic2014.gr3.shared.TweetRepository;
 
 /**
  * Created by buzz on 02.11.2014.
  */
-
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = {SqlConfig.class, MockExternalComponents.class})
 public class SQLTweetProcessingTest {
 
+	@Autowired
+    private SQLTweetProcessing processor;
+    
     @Autowired
-    private at.tuwien.aic2014.gr3.sql.SQLTweetProcessing sqlTweet = new at.tuwien.aic2014.gr3.sql.SQLTweetProcessing();
+    private SqlUserRepository userRepo;
+    
+    /**
+     * damit reset nach jedem test aufgerufen wird auf den mocks. 
+     */
+    @Rule
+    public MockExternalComponents mocks;
+    
+    @Autowired
+    private TweetRepository tweetRepo;
 
 
     @Test
     public void testSQLProcessing(){
-        try {
-            sqlTweet.connectToSQL();
-            sqlTweet.initializeSQLDatabase();
-            //sqlTweet.safeTweetIntoSQL("test");
-            sqlTweet.closeDownConnection();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    	List<Status> statuses = new ArrayList<Status>(); 
+    	Status status = Mockito.mock(Status.class);
+    	//TODO return test-data Mockito.when(status.getXXX()).thenReturn(...);
+		statuses.add(status);
+    	Mockito.when(tweetRepo.iterateTweetsWithUnprocessedUser()).thenReturn(statuses.iterator());
+    	processor.processAll();
+    	assertEquals("should be empty", 0, statuses.size());
+    	//TODO verify created user. 
+//        try {
+//            sqlTweet.connectToSQL();
+//            sqlTweet.initializeSQLDatabase();
+//            //sqlTweet.safeTweetIntoSQL("test");
+//            sqlTweet.closeDownConnection();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
 
     }
-
+    
     @Test
-    public void testTextProcessing(){
-        try {
-            sqlTweet.safeTweetIntoSQL(null);
-        } catch (IOException e) {
-            e.printStackTrace();
+    public void testTweetProcessing() throws IOException, TwitterException {
+    	InputStream is =
+                getClass().getResourceAsStream("/sample-json.txt");
+        BufferedReader in = new BufferedReader(new InputStreamReader(is));
+        String line = null;
+        ArrayList<Status> statuses = new ArrayList<Status>();
+        while((line = in.readLine()) != null) {
+        	Status status = (Status) TwitterObjectFactory.createStatus(line);
+        	statuses.add(status);
         }
+        Mockito.when(tweetRepo.iterateTweetsWithUnprocessedUser()).thenReturn(statuses.iterator());
+        processor.processAll();
+        assertEquals("should be empty", 0, statuses.size());
     }
 }
