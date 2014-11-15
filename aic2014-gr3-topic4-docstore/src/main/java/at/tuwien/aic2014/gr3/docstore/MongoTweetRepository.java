@@ -27,6 +27,12 @@ import com.mongodb.util.JSON;
 @Repository
 public class MongoTweetRepository implements TweetRepository {
 	
+	private static final String ID = "id";
+
+	private static final String USER = "user";
+
+	private static final String TWEET_ID = "tweetId";
+
 	private static final String AIC_PROCESSED_USER = "aic_processed_user";
 
 	private static final class MarkProcessedStatusIterator implements Iterator<Status> {
@@ -75,6 +81,11 @@ public class MongoTweetRepository implements TweetRepository {
 
 	private boolean userTweetsIndexesEnsured;
 	
+	@Override
+	public long countTweets() {
+		return getCollection().count();
+	}
+	
 	/**
 	 * @param json
 	 * 
@@ -85,25 +96,32 @@ public class MongoTweetRepository implements TweetRepository {
 		// handle dates correctly
 		// but it's a start
 		DBObject obj = (DBObject) JSON.parse(json);
-		//upsert. 
-		getCollection().update(new BasicDBObject("id", obj.get("id")), obj, true, false);
-		DBObject tweetUser = (DBObject) obj.get("user");
+		Object tweetId = obj.get(ID);
+		//upsert tweet. 
+		getCollection().update(new BasicDBObject(ID, tweetId), obj, true, false);
+		DBObject tweetUser = (DBObject) obj.get(USER);
 		tweetUser.put("original", 0);
-		tweetUser.put("tweetId", obj.get("id"));
-		getUserTweetsCollection().save(tweetUser);
+		tweetUser.put(TWEET_ID, tweetId);
+		//upsert user-tweet
+		getUserTweetsCollection().update(new BasicDBObject(ID, tweetUser.get(ID))
+												.append(TWEET_ID, tweetId),
+												tweetUser, true, false);
 		DBObject retweetedStatus = (DBObject) obj.get("retweeted_status");
 		if(retweetedStatus != null) {
-			DBObject retweetedUser = (DBObject) retweetedStatus.get("user");
+			//upsert retweeted-user-tweet. 
+			DBObject retweetedUser = (DBObject) retweetedStatus.get(USER);
 			retweetedUser.put("original", 1);
-			retweetedUser.put("tweetId", retweetedStatus.get("id"));
-			getUserTweetsCollection().save(retweetedUser);
+			retweetedUser.put(TWEET_ID, retweetedStatus.get(ID));
+			getUserTweetsCollection().update(new BasicDBObject(ID, retweetedUser.get(ID))
+											.append(TWEET_ID, tweetId),
+											retweetedUser, true, false);
 		}
 	}
 
 	private DBCollection getCollection() {
 		DBCollection streamingTweets = db.getCollection("streamingTweets");
 		if(!streamingTweetsIndexesEnsured) {
-			streamingTweets.createIndex(new BasicDBObject("id", 1));
+			streamingTweets.createIndex(new BasicDBObject(ID, 1));
 			streamingTweets.createIndex(new BasicDBObject("user.id", 1));
 			streamingTweetsIndexesEnsured = true;
 		}
@@ -150,14 +168,29 @@ public class MongoTweetRepository implements TweetRepository {
 		Iterator<DBObject> dbos = stats.results().iterator();
 		return new Iterator<StatusRange>() {
 
+			private DBObject current;
+
 			@Override
 			public boolean hasNext() {
-				return dbos.hasNext();
+				//TODO try to lookup range to check if it was already processed.
+				boolean exists = false;
+				do {
+					if(!dbos.hasNext())
+						return false;
+					current = dbos.next();
+					BasicDBObject q = new BasicDBObject("userId", current.get("_id"))
+											.append("min_tweet", current.get("min_tweet"))
+											.append("max_tweet", current.get("max_tweet"));
+					exists = (null != getUserTweetRangeCollection().findOne(q));
+				} while(exists);
+				return current != null;
 			}
 
 			@Override
 			public StatusRange next() {
-				DBObject o = dbos.next();
+				if(current == null)
+					throw new IllegalStateException("check hasNext() first");
+				DBObject o = current;
 				long min = ((Number) o.get("min_tweet")).longValue();
 				long max = ((Number) o.get("max_tweet")).longValue();
 				//niedrigere long-werte werden von JSON.parse in int übersetzt und sind dann
@@ -165,13 +198,29 @@ public class MongoTweetRepository implements TweetRepository {
 				long userId = ((Number) o.get("_id")).longValue();
 				return new StatusRange(userId, min, max);
 			}
+			
+			@Override
+			public void remove() {
+				if(current == null)
+					throw new IllegalStateException("check hasNext() first");
+				BasicDBObject o = new BasicDBObject();
+				o.append("userId", current.get("_id"));
+				o.append("min_tweet", current.get("min_tweet"));
+				o.append("max_tweet", current.get("max_tweet"));
+				getUserTweetRangeCollection().save(o);
+			}
+
+			private DBCollection getUserTweetRangeCollection() {
+				return db.getCollection("user_tweet_ranges");
+			}
 		};
 	}
 
 	private DBCollection getUserTweetsCollection() {
 		DBCollection userTweets = db.getCollection("user_tweets");
 		if(!userTweetsIndexesEnsured) {
-			userTweets.createIndex(new BasicDBObject("id", 1));
+			userTweets.createIndex(new BasicDBObject(ID, 1));
+			userTweets.createIndex(new BasicDBObject(ID, 1).append(TWEET_ID, 1));
 		}
 		return userTweets;
 	}

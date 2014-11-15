@@ -9,6 +9,8 @@ import twitter4j.Status;
 public interface TweetRepository {
 
 	void save(String rawJSON);
+	
+	public long countTweets();
 
 	/**
 	 * call remove on the returned iterator to mark a tweet as 

@@ -13,7 +13,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import twitter4j.Status;
+import at.tuwien.aic2014.gr3.domain.StatusRange;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -40,11 +42,34 @@ public class MongoTweetRepositoryTest {
 
 	@Test
 	public void testIterateTweetsWithUnprocessedUser() {
-		repo.save(" { id : 123, text : \"test\", user : { name : \"test\"}}");
-		repo.save(" { id : 1234, text : \"test\", aic_processed_user : true, user : { name : \"test\"} }");
+		repo.save(simpleTweet(124L).toString());
+		repo.save(simpleTweet(125L).append("aic_processed_user", true).toString());
 
 		assertEquals(1, iterateAndMarkProcessed());
 		assertEquals(0, iterateAndMarkProcessed());
+	}
+	
+	@Test
+	public void testUpsertTweet() {
+		long inital = repo.countTweets();
+		repo.save(simpleTweet(1L).toString());
+		repo.save(simpleTweet(1L).toString());
+		
+		assertEquals("expected one more tweet", inital + 1, repo.countTweets());
+	}
+
+	private BasicDBObject simpleTweet(long tweetId) {
+		BasicDBObject o = new BasicDBObject("text", "test")
+				.append("user",	new BasicDBObject("name", "testUser").append("id", 1987L));
+		o.append("id", tweetId);
+		return o;
+	}
+	
+	@Test
+	public void testCount() {
+		long initialCount = repo.countTweets();
+		repo.save(simpleTweet(987654L).toString());
+		assertEquals("expected one more tweet", initialCount + 1, repo.countTweets());
 	}
 
 	private int iterateAndMarkProcessed() {
