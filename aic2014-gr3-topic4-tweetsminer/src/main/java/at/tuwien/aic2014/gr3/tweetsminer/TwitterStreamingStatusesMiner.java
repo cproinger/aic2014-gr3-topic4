@@ -25,6 +25,10 @@ public class TwitterStreamingStatusesMiner implements Runnable {
         this.twitterStatusProcessors = twitterStatusProcessors;
     }
 
+    public boolean isRunning() {
+        return running;
+    }
+
     @Override
     public void run() {
         log.debug("Starting mining unprocessed tweets...");
@@ -43,7 +47,7 @@ public class TwitterStreamingStatusesMiner implements Runnable {
                         processor.process(status);
                     }
                     catch (Exception e) {
-                        log.warn ("Exception thrown during tweet process step: " + e.getMessage());
+                        log.warn ("Exception thrown during tweet process step!", e);
                     }
                 }
 

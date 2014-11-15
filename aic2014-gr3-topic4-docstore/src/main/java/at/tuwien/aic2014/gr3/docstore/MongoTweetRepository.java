@@ -85,8 +85,12 @@ public class MongoTweetRepository implements TweetRepository {
 	public long countTweets() {
 		return getCollection().count();
 	}
-	
-	/**
+
+    public void setDb(DB db) {
+        this.db = db;
+    }
+
+    /**
 	 * @param json
 	 * 
 	 */

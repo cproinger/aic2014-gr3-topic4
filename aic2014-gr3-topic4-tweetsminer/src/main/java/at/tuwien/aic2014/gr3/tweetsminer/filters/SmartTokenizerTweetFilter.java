@@ -8,11 +8,9 @@ import org.apache.log4j.Logger;
 import java.util.*;
 
 /**
- * @brief Tokenizer + name finder + stopwords removal
+ * Tokenizer + name finder + stopwords removal
  */
 public class SmartTokenizerTweetFilter implements TweetFilter<String[],String> {
-
-    private static final Logger log = Logger.getLogger(SmartTokenizerTweetFilter.class);
 
     private static final String INVALID_WORD_REG_EXP = "^[^\\w]+";
 

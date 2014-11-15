@@ -4,7 +4,7 @@ import java.util.List;
 
 public class TweetFilterChain<O,I> implements TweetFilter<O,I> {
 
-    List<TweetFilter> tweetFiltersChain;
+    private List<TweetFilter> tweetFiltersChain;
 
     public TweetFilterChain(List<TweetFilter> tweetFiltersChain) {
         this.tweetFiltersChain = tweetFiltersChain;
@@ -15,7 +15,8 @@ public class TweetFilterChain<O,I> implements TweetFilter<O,I> {
         DataCarrier processedDataCarrier = carrier;
 
         for (TweetFilter filter : tweetFiltersChain) {
-            filter.getClass().getGenericSuperclass().getTypeName();
+            //Requires the chain filters input - output to match
+            //Eg: [I] -> F1 -> [type2] -> F2 -> [O]
             processedDataCarrier = filter.filter(processedDataCarrier);
         }
 

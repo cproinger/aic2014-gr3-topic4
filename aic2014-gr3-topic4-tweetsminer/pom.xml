@@ -4,6 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <repositories>
+        <repository>
+            <id>neo4j-releases</id>
+            <url>http://m2.neo4j.org/releases/</url>
+        </repository>
+    </repositories>
+
     <parent>
         <groupId>aic2014-gr3-topic4</groupId>
         <artifactId>aic2014-gr3-topic4-parent</artifactId>
@@ -27,6 +34,11 @@
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j</artifactId>
             <version>2.1.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-rest-graphdb</artifactId>
+            <version>2.0.0-M06</version>
         </dependency>
         <dependency>
             <groupId>org.neo4j</groupId>

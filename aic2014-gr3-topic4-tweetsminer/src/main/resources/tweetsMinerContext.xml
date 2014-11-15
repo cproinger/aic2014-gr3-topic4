@@ -1,29 +1,147 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd"
+       default-lazy-init="true">
 
-    <bean id="mongoClient" class="com.mongodb.MongoClient">
-        
-    </bean>
+    <context:property-placeholder location="tweetsMiner.properties"/>
 
-    <bean id="db" factory-bean="mongoClient" factory-method="getDB">
-        <constructor-arg type="java.lang.String" value="mydb"/>
-    </bean>
-    
-    <bean id="tweetsRepository" class="at.tuwien.aic2014.gr3.docstore.MongoTweetRepository">
-    </bean>
-
-    <bean id="mentionedUsersStatusProcessor" class="at.tuwien.aic2014.gr3.tweetsminer.MentionedUsersTwitterStatusProcessor">
-
-    </bean>
-
+    <!-- Tweets Miner config -->
     <bean id="tweetsMiner" class="at.tuwien.aic2014.gr3.tweetsminer.TwitterStreamingStatusesMiner">
         <property name="tweetRepository" ref="tweetsRepository"/>
         <property name="twitterStatusProcessors">
             <list>
                 <ref bean="mentionedUsersStatusProcessor"/>
+                <ref bean="mentionedHashtagsStatusProcessor"/>
+                <ref bean="repliedToStatusProcessor"/>
+                <ref bean="retweetedUserStatusProcessor"/>
+                <ref bean="topicExtractionStatusProcessor"/>
             </list>
         </property>
+    </bean>
+
+    <!-- Neo4j DB config -->
+    <bean id="graphdb" class="org.neo4j.rest.graphdb.RestGraphDatabase" destroy-method="shutdown">
+        <constructor-arg name="uri" value="${tweetsMiner.neo4j.url}"/>
+    </bean>
+
+    <!-- Mongodb DB config -->
+    <bean id="tweetsRepository" class="at.tuwien.aic2014.gr3.docstore.MongoTweetRepository">
+        <property name="db" ref="mongodb"/>
+    </bean>
+
+    <bean id="mongoClient" class="com.mongodb.MongoClient">
+        <constructor-arg name="host" value="${tweetsMiner.mongodb.host}"/>
+        <constructor-arg name="port" value="${tweetsMiner.mongodb.port}"/>
+    </bean>
+
+    <bean id="mongodb" factory-bean="mongoClient" factory-method="getDB">
+        <constructor-arg type="java.lang.String" value="${tweetsMiner.mongodb.db}"/>
+    </bean>
+
+    <!-- DAO Layer -->
+    <bean id="twitterUserRelationshipHandlerFactory" class="at.tuwien.aic2014.gr3.dao.TwitterUserRelationshipHandlerFactory">
+        <property name="graphDb" ref="graphdb"/>
+    </bean>
+
+    <bean id="neo4jTwitterUserDao" class="at.tuwien.aic2014.gr3.dao.Neo4jTwitterUserDao">
+        <property name="graphDb" ref="graphdb"/>
+        <property name="twitterUserRelationshipHandlerFactory" ref="twitterUserRelationshipHandlerFactory"/>
+    </bean>
+
+    <!-- Twitter status processors -->
+    <bean id="mentionedUsersStatusProcessor" class="at.tuwien.aic2014.gr3.tweetsminer.MentionedUsersTwitterStatusProcessor">
+        <property name="twitterUserDao" ref="neo4jTwitterUserDao"/>
+    </bean>
+
+    <bean id="mentionedHashtagsStatusProcessor" class="at.tuwien.aic2014.gr3.tweetsminer.MentionedHashtagsTwitterStatusProcessor">
+        <property name="twitterUserDao" ref="neo4jTwitterUserDao"/>
+    </bean>
+
+    <bean id="retweetedUserStatusProcessor" class="at.tuwien.aic2014.gr3.tweetsminer.RetweetedUserTwitterStatusProcessor">
+        <property name="twitterUserDao" ref="neo4jTwitterUserDao"/>
+    </bean>
+
+    <bean id="repliedToStatusProcessor" class="at.tuwien.aic2014.gr3.tweetsminer.RepliedToTwitterStatusProcessor">
+        <property name="twitterUserDao" ref="neo4jTwitterUserDao"/>
+    </bean>
+
+    <bean id="topicExtractionStatusProcessor" class="at.tuwien.aic2014.gr3.tweetsminer.TopicExtractionTwitterStatusProcessor">
+        <property name="twitterUserDao" ref="neo4jTwitterUserDao"/>
+        <property name="tweetFilterChain" ref="tweetFilterChain"/>
+    </bean>
+
+
+    <!-- Topic extractor filters -->
+    <bean id="tweetFilterChain" class="at.tuwien.aic2014.gr3.tweetsminer.filters.TweetFilterChain">
+        <constructor-arg name="tweetFiltersChain">
+                <list>
+                    <ref bean="removeRetweetUserFilter"/>
+                    <ref bean="removeHashtagMentionsFilter"/>
+                    <ref bean="removeTwitterUserMentionsFilter"/>
+                    <ref bean="removeUrlsFilter"/>
+                    <ref bean="smartTokenizerTweetFilter"/>
+                </list>
+        </constructor-arg>
+    </bean>
+
+    <bean id="removeRetweetUserFilter" class="at.tuwien.aic2014.gr3.tweetsminer.filters.RemoveRetweetHeaderTweetFilter"/>
+
+    <bean id="removeTwitterUserMentionsFilter" class="at.tuwien.aic2014.gr3.tweetsminer.filters.RemoveUserMentionsTweetFilter"/>
+
+    <bean id="removeHashtagMentionsFilter" class="at.tuwien.aic2014.gr3.tweetsminer.filters.RemoveHashtagsTweetFilter"/>
+
+    <bean id="removeUrlsFilter" class="at.tuwien.aic2014.gr3.tweetsminer.filters.RemoveUrlsTweetFilter"/>
+
+    <bean id="smartTokenizerTweetFilter" class="at.tuwien.aic2014.gr3.tweetsminer.filters.SmartTokenizerTweetFilter">
+        <property name="tokenizer" ref="opennlpTokenizer"/>
+        <property name="nameFinder" ref="opennlpNameFinder"/>
+        <property name="stopwords">
+            <bean factory-bean="enStopWords" factory-method="readNext"/>
+        </property>
+    </bean>
+
+    <!-- opennlp config -->
+    <bean id="opennlpTokenizer" class="opennlp.tools.tokenize.TokenizerME">
+        <constructor-arg>
+            <bean class="opennlp.tools.tokenize.TokenizerModel">
+                <constructor-arg ref="enTokenizerTrainedData"/>
+            </bean>
+        </constructor-arg>
+    </bean>
+
+    <bean id="opennlpNameFinder" class="opennlp.tools.namefind.NameFinderME">
+        <constructor-arg>
+            <bean class="opennlp.tools.namefind.TokenNameFinderModel">
+                <constructor-arg ref="enPersonNamesTrainedData"/>
+            </bean>
+        </constructor-arg>
+    </bean>
+
+    <!-- Resources -->
+    <bean id="enTokenizerTrainedDataResource" class="org.springframework.core.io.ClassPathResource">
+        <constructor-arg value="en-token.bin"/>
+    </bean>
+    <bean id="enTokenizerTrainedData"
+          factory-bean="enTokenizerTrainedDataResource" factory-method="getFile"/>
+
+    <bean id="enPersonNamesTrainedDataResource" class="org.springframework.core.io.ClassPathResource">
+        <constructor-arg value="en-ner-person.bin"/>
+    </bean>
+    <bean id="enPersonNamesTrainedData"
+          factory-bean="enPersonNamesTrainedDataResource" factory-method="getFile"/>
+
+    <bean id="enStopwordsResource" class="org.springframework.core.io.ClassPathResource">
+        <constructor-arg value="stopwords.csv"/>
+    </bean>
+    <bean id="enStopWords" class="au.com.bytecode.opencsv.CSVReader">
+        <constructor-arg>
+            <bean class="java.io.FileReader">
+                <constructor-arg>
+                    <bean factory-bean="enStopwordsResource" factory-method="getFile"/>
+                </constructor-arg>
+            </bean>
+        </constructor-arg>
     </bean>
 </beans>

@@ -1,0 +1,9 @@
+start mongo
+start neo4j
+
+adapt tweetsMiner.properties accordingly
+
+
+For a clean start:
+drop mongo and reimport from dump.json
+drop neo4j: MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE n,r;

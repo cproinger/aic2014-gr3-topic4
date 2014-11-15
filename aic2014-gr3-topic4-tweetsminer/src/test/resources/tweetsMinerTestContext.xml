@@ -111,13 +111,13 @@
     <bean id="enTokenizerTrainedDataResource" class="org.springframework.core.io.ClassPathResource">
         <constructor-arg value="en-token.bin"/>
     </bean>
-    <bean id="enTokenizerTrainedData" class="java.io.FileInputStream"
+    <bean id="enTokenizerTrainedData"
           factory-bean="enTokenizerTrainedDataResource" factory-method="getFile"/>
 
     <bean id="enPersonNamesTrainedDataResource" class="org.springframework.core.io.ClassPathResource">
         <constructor-arg value="en-ner-person.bin"/>
     </bean>
-    <bean id="enPersonNamesTrainedData" class="java.io.FileInputStream"
+    <bean id="enPersonNamesTrainedData"
           factory-bean="enPersonNamesTrainedDataResource" factory-method="getFile"/>
 
     <bean id="enStopwordsResource" class="org.springframework.core.io.ClassPathResource">

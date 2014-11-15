@@ -63,11 +63,11 @@ public abstract class TweetProcessorTest {
         tx.success();
     }
 
-    protected Status getTestingTwitterStatus() {
+    Status getTestingTwitterStatus() {
         return testingTwitterStatus;
     }
 
-    protected void assertUserRelationship(long u1Id, String relationship, long u2Id, int degree) {
+    void assertUserRelationship(long u1Id, String relationship, long u2Id, int degree) {
         assertUserUniquePresence(u1Id);
         assertUserUniquePresence(u2Id);
 
@@ -89,7 +89,7 @@ public abstract class TweetProcessorTest {
         res.close();
     }
 
-    protected void assertUserRelationshipHashtag(long uId, String hashtag, int degree) {
+    void assertUserRelationshipHashtag(long uId, String hashtag, int degree) {
         assertUserUniquePresence(uId);
         assertHashtagUniquePresence(hashtag);
 
@@ -111,7 +111,7 @@ public abstract class TweetProcessorTest {
         res.close();
     }
 
-    protected void assertUserRelationshipTopic(long uId, String topic, int degree) {
+    void assertUserRelationshipTopic(long uId, String topic, int degree) {
         assertUserUniquePresence(uId);
         assertTopicUniquePresence(topic);
 
@@ -133,7 +133,7 @@ public abstract class TweetProcessorTest {
         res.close();
     }
 
-    protected void assertHashtagUniquePresence(String hashtag) {
+    void assertHashtagUniquePresence(String hashtag) {
         String query =
                 "MATCH (n:" + Neo4jTwitterUserRelationshipHandler.HASHTAG_LABEL.name() + ") " +
                 "WHERE n." + Neo4jTwitterUserRelationshipHandler.HASHTAG_NAME_PROP + " = {hashtag} " +
@@ -147,7 +147,7 @@ public abstract class TweetProcessorTest {
         res.close();
     }
 
-    protected void assertTopicUniquePresence(String topic) {
+    void assertTopicUniquePresence(String topic) {
         String query =
                 "MATCH (n:" + Neo4jTwitterUserRelationshipHandler.TOPIC_LABEL.name() + ") " +
                 "WHERE n." + Neo4jTwitterUserRelationshipHandler.TOPIC_NAME_PROP+ " = {topic} " +
@@ -161,7 +161,7 @@ public abstract class TweetProcessorTest {
         res.close();
     }
 
-    protected void assertUserUniquePresence(long userId) {
+    void assertUserUniquePresence(long userId) {
         String query =
                 "MATCH (n:" + Neo4jTwitterUserDao.TWITTER_USER_NODE_LABEL.name() + ") " +
                 "WHERE n." + Neo4jTwitterUserDao.TWITTER_USER_ID_PROP + " = {id} " +
