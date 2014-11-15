@@ -32,7 +32,7 @@ public class SQLTweetProcessing implements TweetProcessing {
     }
 
 
-    @Override
+    //@Override
     public void initializeSQLDatabase() {
         try {
             Statement stat = conn.createStatement();
@@ -55,13 +55,13 @@ public class SQLTweetProcessing implements TweetProcessing {
 
     }
 
-    @Override
+    //@Override
     public void connectToSQL() throws Exception {
         DeleteDbFiles.execute("~", "name", true);
         conn = DriverManager.getConnection(url, username, password);
     }
 
-    @Override
+    //@Override
     public void closeDownConnection() throws SQLException {
         conn.close();
     }
