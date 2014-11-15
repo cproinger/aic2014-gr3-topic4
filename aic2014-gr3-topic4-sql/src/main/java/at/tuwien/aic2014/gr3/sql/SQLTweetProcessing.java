@@ -62,8 +62,8 @@ public class SQLTweetProcessing implements TweetProcessing {
                     " favourites_count integer, created_at datetime,language varchar(255)," +
                     "last_time_synched datetime)");
 
-            stat.execute("insert into test values(1,'Hello','','','http://t.co/wBsL7knD3R','',false,false,0,10,0,0,null,'ru',null)");
-            stat.execute("insert into test values(2,'Test','','','http://t.co/wBsL7knD3R','',false,false,0,10,0,0,null,'ru',null)");
+            stat.execute("insert into test values(1,'Hello','','','',false,false,0,10,0,0,null,'ru',null)");
+            stat.execute("insert into test values(2,'Test','','','',false,false,0,10,0,0,null,'ru',null)");
             ResultSet rs = stat.executeQuery("select * from test");
             while (rs.next()) {
                 System.out.println(rs.getString("name"));
