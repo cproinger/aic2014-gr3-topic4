@@ -3,7 +3,10 @@ package at.tuwien.aic2014.gr3.sql;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 /**
  * Created by buzz on 02.11.2014.
@@ -31,7 +34,14 @@ public class SQLTweetProcessingTest {
     @Test
     public void testTextProcessing(){
         try {
-            sqlTweet.safeTweetIntoSQL(null);
+            InputStream is =
+                    getClass().getClassLoader().getResourceAsStream("at.tuwien.aic2014.gr3.sql/sample-json.txt");
+            BufferedReader in = new BufferedReader(new InputStreamReader(is));
+            String jsonTxt = in.readLine();
+            while(jsonTxt != null) {
+                sqlTweet.safeTweetIntoSQL(jsonTxt);
+                jsonTxt = in.readLine();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
