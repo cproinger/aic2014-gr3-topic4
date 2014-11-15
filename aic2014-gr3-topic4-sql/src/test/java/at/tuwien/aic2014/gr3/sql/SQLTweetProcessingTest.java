@@ -75,7 +75,7 @@ public class SQLTweetProcessingTest {
     @Test
     public void testTweetProcessing() throws IOException, TwitterException {
     	InputStream is =
-                getClass().getResourceAsStream("/sample-json.txt");
+                getClass().getClassLoader().getResourceAsStream("at.tuwien.aic2014.gr3.sql/sample-json.txt");
         BufferedReader in = new BufferedReader(new InputStreamReader(is));
         String line = null;
         ArrayList<Status> statuses = new ArrayList<Status>();

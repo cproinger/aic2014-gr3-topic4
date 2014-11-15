@@ -8,7 +8,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = SqlConfig.class)
-public class SqlTweetRepositoryTest {
+public class SqlUserRepositoryTest {
 
 	@Autowired
 	private SqlUserRepository userRepo; 

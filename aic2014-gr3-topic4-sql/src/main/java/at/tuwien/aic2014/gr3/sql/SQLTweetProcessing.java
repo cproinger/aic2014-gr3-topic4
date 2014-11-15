@@ -21,6 +21,9 @@ import java.io.InputStreamReader;
 import java.sql.*;
 import java.util.Iterator;
 
+import javax.annotation.PostConstruct;
+import javax.sql.DataSource;
+
 /**
  * Created with IntelliJ IDEA.
  * User: putzchri
@@ -30,13 +33,12 @@ import java.util.Iterator;
  */
 @Service
 public class SQLTweetProcessing implements TweetProcessing {
-    Connection conn;
-    String url = "jdbc:h2:~/name";
-    String username = "sa";
-    String password = "";
 	
     private TweetRepository tweetRepo;
     private SqlUserRepository userRepo;
+    
+    @Autowired
+    private DataSource dataSource;
 
     @Autowired
     public SQLTweetProcessing(TweetRepository tweetRepo, SqlUserRepository userRepo) {
@@ -45,48 +47,22 @@ public class SQLTweetProcessing implements TweetProcessing {
     }
     
 
-	private void processStatus(Status stat) { 
+	private void processStatus(Status stat) {
+		//TODO replace safeTweetIntoSql with this. 
 		TwitterUserUtils utils = new TwitterUserUtils();
 		User user = stat.getUser();
-		//gibt scheinbar welche ohne user???
+		//scheinbar gibts welche ohne user???
 		if(user == null)
 			return;
 		TwitterUser tu = utils.create(user);
 		userRepo.save(tu);
 	}
-    
-    @Override
-    public void safeTweetIntoSQL(String rawJSON) throws IOException{
-    	//TODO remove. 
-        InputStream is =
-                getClass().getClassLoader().getResourceAsStream("at.tuwien.aic2014.gr3.sql/sample-json.txt");
-        BufferedReader in = new BufferedReader(new InputStreamReader(is));
-        String jsonTxt = in.readLine();
-        while(jsonTxt != null) {
-            JSONObject json = (JSONObject) JSONSerializer.toJSON(jsonTxt);
-            JSONObject user = json.getJSONObject("user");
-            long id = json.getLong("id");
-            String name = user.getString("name");
-            String screen_name = user.getString("screen_name");
-            String location = user.getString("location");
-            String description = json.getString("text");
-            boolean protected_value = user.getBoolean("protected");
-            boolean verified = user.getBoolean("verified");
-            int followers_count = user.getInt("followers_count");
-            int friends_count = user.getInt("friends_count");
-            int retweet_count = json.getInt("retweet_count");
-
-            System.out.println("Id: " + id);
-            System.out.println("Retweet_count: " + retweet_count);
-            System.out.println("Screen_name: " + screen_name);
-            jsonTxt = in.readLine();
-        }
-    }
-
 
     //@Override
+    @PostConstruct
     public void initializeSQLDatabase() {
-        try {
+    	//TODO move to SqlUserRepository. 
+        try(Connection conn = dataSource.getConnection()) {
             Statement stat = conn.createStatement();
             stat.execute("create table test(id bigint primary key, name varchar(255),screen_name varchar(255)," +
                     "location varchar(255), description varchar(255),protected boolean," +
@@ -105,17 +81,6 @@ public class SQLTweetProcessing implements TweetProcessing {
             e.printStackTrace();
         }
 
-    }
-
-    //@Override
-    public void connectToSQL() throws Exception {
-        DeleteDbFiles.execute("~", "name", true);
-        conn = DriverManager.getConnection(url, username, password);
-    }
-
-    //@Override
-    public void closeDownConnection() throws SQLException {
-        conn.close();
     }
 
 	public void processAll() {
