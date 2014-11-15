@@ -8,8 +8,8 @@ import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.server.VaadinServlet;
 
 @WebServlet(urlPatterns = "/*")
-@VaadinServletConfiguration(productionMode = false, ui = MyVaadinUI.class)
+@VaadinServletConfiguration(productionMode = false, ui = MyVaadinUI.class, 
+		widgetset = "at.tuwien.aic2014.web.vaadin.WidgetSet")
 public class MyVaadinServlet extends SpringAwareVaadinServlet {
 
-	
 }
