@@ -7,7 +7,7 @@ public class TwitterUserUtils {
     public TwitterUser create(User fromUser) {
         TwitterUser twitterUser = new TwitterUser();
 
-        twitterUser.setId(-1);
+        twitterUser.setId(fromUser.getId());
         twitterUser.setName(fromUser.getName());
         twitterUser.setScreenName(fromUser.getScreenName());
         twitterUser.setLocation(fromUser.getLocation());

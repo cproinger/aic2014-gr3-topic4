@@ -27,7 +27,10 @@ public class Neo4jTwitterUserDao implements TwitterUserDao {
         log.debug("Creating twitter user node...");
 
         assert (twitterUser.getId() > 0);
-        assert (this.readById(twitterUser.getId()) == null);
+        if (this.readById(twitterUser.getId()) != null) {
+            log.debug ("Twitter User " + twitterUser.getId() + " already exists!");
+            return twitterUser;
+        }
 
         Transaction tx = graphDb.beginTx();
 
