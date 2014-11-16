@@ -70,6 +70,17 @@ public class Neo4jTwitterUserDaoTest {
     }
 
     @Test
+    public void testCreateDuplicate() throws Exception {
+        TwitterUser user = new TwitterUser();
+        user.setId(2);
+
+        neo4jTwitterUserDao.create(user);
+        neo4jTwitterUserDao.create(user);
+
+        assertUserUniquePresence(user);
+    }
+
+    @Test
     public void testReadById() throws Exception {
         assertNotNull(neo4jTwitterUserDao.readById(testTwitterUser.getId()));
     }

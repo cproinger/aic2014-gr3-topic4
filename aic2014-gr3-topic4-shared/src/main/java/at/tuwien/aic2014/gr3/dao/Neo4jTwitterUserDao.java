@@ -56,7 +56,9 @@ public class Neo4jTwitterUserDao implements TwitterUserDao {
         if (it.hasNext()) {
             twitterUser = new TwitterUser();
             Node userNode = it.next();
-            twitterUser.setId((long)userNode.getProperty(TWITTER_USER_ID_PROP));
+            //hack to cast Integer to Long, as it seems neo4j uses Integer for
+            //id persistence.
+            twitterUser.setId(Long.parseLong(String.valueOf(userNode.getProperty(TWITTER_USER_ID_PROP))));
         }
 
         log.debug("Read twitter user: " + (twitterUser != null ? twitterUser.getId() : null));
