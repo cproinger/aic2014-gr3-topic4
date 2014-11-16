@@ -10,13 +10,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = SqlConfig.class)
 public class SqlUserRepositoryTest {
 
-	@Autowired
-	private SqlUserRepository userRepo; 
-	
-	//TODO. 
-	
-	@Test
-	public void test() {
-		userRepo.count();
-	}
+    @Autowired
+    private SqlUserRepository userRepo;
+
+    //TODO.
+
+    @Test
+    public void test() {
+        userRepo.count();
+    }
 }

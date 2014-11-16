@@ -1,7 +1,5 @@
 package at.tuwien.aic2014.gr3.domain;
 
-import twitter4j.User;
-
 import java.util.Date;
 
 public class TwitterUser {
@@ -22,6 +20,8 @@ public class TwitterUser {
     private Date createdAt;
     private String language;
     private Date lastTimeSynched;
+    private boolean isProtected;
+    private boolean isVerified;
 
     public long getId() {
         return id;
@@ -149,5 +149,19 @@ public class TwitterUser {
 
     public void setLastTimeSynched(Date lastTimeSynched) {
         this.lastTimeSynched = lastTimeSynched;
+    }
+
+    public boolean getIsProtected(){return isProtected;}
+
+    public void setIsProtected(boolean isProtected) {
+        this.isProtected = isProtected;
+    }
+
+    public boolean getIsVerified() {
+        return isVerified;
+    }
+
+    public void setIsVerified(boolean isVerified) {
+        this.isVerified = isVerified;
     }
 }

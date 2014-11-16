@@ -22,7 +22,8 @@ public class TwitterUserUtils {
         twitterUser.setCreatedAt(fromUser.getCreatedAt());
         twitterUser.setLanguage(fromUser.getLang());
         twitterUser.setLastTimeSynched(null);
-
+        twitterUser.setIsProtected(fromUser.isProtected());
+        twitterUser.setIsVerified(fromUser.isVerified());
         return twitterUser;
     }
 }

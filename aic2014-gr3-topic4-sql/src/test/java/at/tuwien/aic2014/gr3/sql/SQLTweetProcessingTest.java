@@ -1,32 +1,25 @@
 package at.tuwien.aic2014.gr3.sql;
 
-import static org.junit.Assert.*;
+import at.tuwien.aic2014.gr3.shared.TweetRepository;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import twitter4j.Status;
+import twitter4j.TwitterException;
+import twitter4j.TwitterObjectFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mock.web.portlet.MockActionRequest;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import twitter4j.Status;
-import twitter4j.TwitterException;
-import twitter4j.TwitterObjectFactory;
-import at.tuwien.aic2014.gr3.domain.StatusRange;
-import at.tuwien.aic2014.gr3.shared.TweetProcessing;
-import at.tuwien.aic2014.gr3.shared.TweetRepository;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Created by buzz on 02.11.2014.
@@ -74,6 +67,7 @@ public class SQLTweetProcessingTest {
     
     @Test
     public void testTweetProcessing() throws IOException, TwitterException {
+        userRepo.initSQL();
     	InputStream is =
                 getClass().getResourceAsStream("/sample-json.txt");
         BufferedReader in = new BufferedReader(new InputStreamReader(is));
@@ -86,5 +80,7 @@ public class SQLTweetProcessingTest {
         Mockito.when(tweetRepo.iterateTweetsWithUnprocessedUser()).thenReturn(statuses.iterator());
         processor.processAll();
         assertEquals("should be empty", 0, statuses.size());
+        userRepo.getResults();
+        userRepo.closeH2SQL();
     }
 }
