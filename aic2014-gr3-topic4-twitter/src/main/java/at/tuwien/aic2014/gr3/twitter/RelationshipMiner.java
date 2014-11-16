@@ -3,18 +3,14 @@ package at.tuwien.aic2014.gr3.twitter;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.XMLConstants;
 
-import org.neo4j.unsafe.impl.batchimport.cache.NextFieldManipulator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.stereotype.Service;
-import org.springframework.test.context.ContextConfiguration;
 
 import at.tuwien.aic2014.gr3.dao.Neo4jTwitterUserDao;
-import at.tuwien.aic2014.gr3.dao.TwitterUserDao;
 import at.tuwien.aic2014.gr3.dao.TwitterUserRelationshipHandler;
 import at.tuwien.aic2014.gr3.dao.TwitterUserRelationships;
 import at.tuwien.aic2014.gr3.domain.TwitterUser;
