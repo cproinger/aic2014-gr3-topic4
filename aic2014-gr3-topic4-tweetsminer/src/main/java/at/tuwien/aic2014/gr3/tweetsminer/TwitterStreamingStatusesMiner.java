@@ -37,7 +37,13 @@ public class TwitterStreamingStatusesMiner implements Runnable {
         Iterator<Status> it = tweetRepository.iterateTweetsWithUnprocessedUser();
 
         while (running && it.hasNext()) {
-            Status status = it.next();
+            Status status;
+            try {
+                status = it.next();
+            } catch (Exception e) {
+                log.error("Exception thrown while fetching mongodb data!", e);
+                continue;
+            }
 
             if (isLanguageSupported(status)) {
                 log.debug("Processing tweet " + status.getId() + "...");

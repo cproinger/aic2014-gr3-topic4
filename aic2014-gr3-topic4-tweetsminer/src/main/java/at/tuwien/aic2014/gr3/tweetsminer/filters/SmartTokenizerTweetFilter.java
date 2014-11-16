@@ -12,7 +12,9 @@ import java.util.*;
  */
 public class SmartTokenizerTweetFilter implements TweetFilter<String[],String> {
 
-    private static final String INVALID_WORD_REG_EXP = "^[^\\w]+";
+    private static final String INVALID_WORD_REG_EXP = "^\\W+";
+
+    private static final String TOKEN_STRIP_REG_EXP = "^\\W+|\\W+$";
 
     private Tokenizer tokenizer;
     private NameFinderME nameFinder;
@@ -49,13 +51,15 @@ public class SmartTokenizerTweetFilter implements TweetFilter<String[],String> {
                 currentTokenIndex += nameMatches[currentNameMatchIndex].length();
                 currentNameMatchIndex++;
             }
-            else if (!stopwords.contains(tokens[currentTokenIndex].toLowerCase()) &&
-                    !tokens[currentTokenIndex].matches(INVALID_WORD_REG_EXP)) {
-                smartTokens.add(tokens[currentTokenIndex]);
-                currentTokenIndex++;
-            }
             else {
-                currentTokenIndex++;
+                String strippedToken = strip(tokens[currentTokenIndex]);
+                if (strippedToken.length() > 0 && !stopwords.contains(strippedToken)) {
+                    smartTokens.add(strippedToken);
+                    currentTokenIndex++;
+                }
+                else {
+                    currentTokenIndex++;
+                }
             }
         }
 
@@ -71,7 +75,7 @@ public class SmartTokenizerTweetFilter implements TweetFilter<String[],String> {
 
         for (int i = nameMatch.getStart() + 1; i < nameMatch.getEnd(); ++i) {
             if (tokens[i].matches(INVALID_WORD_REG_EXP)) {
-                name += tokens[i];
+                name += tokens[i];  //Punctuation needs no space, such as: J. Brown
             }
             else {
                 name += String.format(" %s", tokens[i]);
@@ -81,4 +85,7 @@ public class SmartTokenizerTweetFilter implements TweetFilter<String[],String> {
         return name;
     }
 
+    private String strip (String token) {
+        return token.replaceAll(TOKEN_STRIP_REG_EXP, "").trim().toLowerCase();
+    }
 }

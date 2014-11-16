@@ -4,4 +4,5 @@
   relationships, are persisted only in neo4j with their id. For such users, the
   metadata has to be then separately loaded in the sql db.
 * new relationship: user -> tweet source (url from where the tweet is sent)
-* provide a README
+
+* better topic extraction: place's names

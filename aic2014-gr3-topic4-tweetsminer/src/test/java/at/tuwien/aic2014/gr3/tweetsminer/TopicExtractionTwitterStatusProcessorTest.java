@@ -19,7 +19,7 @@ public class TopicExtractionTwitterStatusProcessorTest extends TweetProcessorTes
 
         long userId = getTestingTwitterStatus().getUser().getId();
 
-        assertUserRelationshipTopic(userId, "testTopic", 2);
+        assertUserRelationshipTopic(userId, "testtopic", 2);
         assertUserRelationshipTopic(userId, "Mike Tyson", 1);
     }
 }
