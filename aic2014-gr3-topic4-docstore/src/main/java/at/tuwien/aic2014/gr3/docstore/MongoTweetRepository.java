@@ -106,9 +106,12 @@ public class MongoTweetRepository implements TweetRepository {
 		DBObject tweetUser = (DBObject) obj.get(USER);
 		tweetUser.put("original", 0);
 		tweetUser.put(TWEET_ID, tweetId);
-		//upsert user-tweet
+		//upsert user-tweet: aber nur wenn sich der status_count nicht geändert hat
+		//sonst verlieren wir bei der nächsten iteration über die status-ranges
+		//tweets
 		getUserTweetsCollection().update(new BasicDBObject(ID, tweetUser.get(ID))
-												.append(TWEET_ID, tweetId),
+												.append(TWEET_ID, tweetId)
+												.append("statuses_count", tweetUser.get("statuses_count")),
 												tweetUser, true, false);
 		DBObject retweetedStatus = (DBObject) obj.get("retweeted_status");
 		if(retweetedStatus != null) {
@@ -116,8 +119,12 @@ public class MongoTweetRepository implements TweetRepository {
 			DBObject retweetedUser = (DBObject) retweetedStatus.get(USER);
 			retweetedUser.put("original", 1);
 			retweetedUser.put(TWEET_ID, retweetedStatus.get(ID));
+			//upsert user-tweet: aber nur wenn sich der status_count nicht geändert hat
+			//sonst verlieren wir bei der nächsten iteration über die status-ranges
+			//tweets
 			getUserTweetsCollection().update(new BasicDBObject(ID, retweetedUser.get(ID))
-											.append(TWEET_ID, tweetId),
+											.append(TWEET_ID, tweetId)
+											.append("statuses_count", tweetUser.get("statuses_count")),
 											retweetedUser, true, false);
 		}
 	}

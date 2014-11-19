@@ -88,8 +88,8 @@ public class SqlUserRepository {
         try {
             try(Connection con = dataSource.getConnection();) {
 				ResultSet rs = con.createStatement().executeQuery(
-						"select * from information_schema.tables where table_name = '"
-								+ USER_TABLE_NAME + "'");
+						"select * from information_schema.tables where upper(table_name) = upper('"
+								+ USER_TABLE_NAME + "')");
 				if(!rs.next()) {
 		            Statement stat = con.createStatement();
 		            stat.execute("create table " + USER_TABLE_NAME + "("
