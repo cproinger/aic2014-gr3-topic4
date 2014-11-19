@@ -67,7 +67,6 @@ public class SQLTweetProcessingTest {
     
     @Test
     public void testTweetProcessing() throws IOException, TwitterException {
-        userRepo.initSQL();
     	InputStream is =
                 getClass().getResourceAsStream("/sample-json.txt");
         BufferedReader in = new BufferedReader(new InputStreamReader(is));
@@ -80,7 +79,7 @@ public class SQLTweetProcessingTest {
         Mockito.when(tweetRepo.iterateTweetsWithUnprocessedUser()).thenReturn(statuses.iterator());
         processor.processAll();
         assertEquals("should be empty", 0, statuses.size());
-        userRepo.getResults();
-        userRepo.closeH2SQL();
+        //6 tweets haben offenbar keinen user. 
+        assertEquals(1041, userRepo.count());
     }
 }

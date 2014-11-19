@@ -5,13 +5,16 @@ import at.tuwien.aic2014.gr3.domain.TwitterUser;
 import at.tuwien.aic2014.gr3.domain.TwitterUserUtils;
 import at.tuwien.aic2014.gr3.shared.TweetProcessing;
 import at.tuwien.aic2014.gr3.shared.TweetRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.stereotype.Service;
+
 import twitter4j.Status;
 import twitter4j.User;
 
 import javax.sql.DataSource;
+
 import java.util.Iterator;
 
 /**
@@ -50,6 +53,7 @@ public class SQLTweetProcessing implements TweetProcessing {
 	public void processAll() {
 		for(Iterator<Status> it = tweetRepo.iterateTweetsWithUnprocessedUser(); it.hasNext(); ) {
 			Status stat = it.next();
+			System.out.println("process tweet " +stat.getId());
 			processStatus(stat);
 			it.remove();
 		}
