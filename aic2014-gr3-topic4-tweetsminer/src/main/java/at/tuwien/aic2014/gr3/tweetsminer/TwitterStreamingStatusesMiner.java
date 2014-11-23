@@ -31,7 +31,7 @@ public class TwitterStreamingStatusesMiner implements Runnable {
 
     @Override
     public void run() {
-        log.debug("Starting mining unprocessed tweets...");
+        log.info("Starting mining unprocessed tweets...");
 
         running = true;
         Iterator<Status> it = tweetRepository.iterateTweetsWithUnprocessedUser();
@@ -66,11 +66,11 @@ public class TwitterStreamingStatusesMiner implements Runnable {
             it.remove();
         }
 
-        log.debug("Tweets mining process successfully shutdown! Remaining unprocessed tweets: " + it.hasNext());
+        log.info("Tweets mining process successfully shutdown! Remaining unprocessed tweets: " + it.hasNext());
     }
 
     public void shutdown() {
-        log.debug("Shutting tweets mining process down...");
+        log.info("Shutting tweets mining process down...");
         running = false;
     }
 

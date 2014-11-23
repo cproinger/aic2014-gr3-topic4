@@ -17,18 +17,25 @@ public class Main {
         TwitterStreamingStatusesMiner tweetsMiner =
                 (TwitterStreamingStatusesMiner) appCtx.getBean("tweetsMiner");
 
+        Thread tweetsMinerThread = new Thread(tweetsMiner);
+
         log.debug("Registering shutdown handler");
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run () {
-                log.debug("Shutdown handler called!");
+                log.info("Shutdown handler called!");
                 if (tweetsMiner.isRunning()) {
                     tweetsMiner.shutdown();
+                }
+
+                try {
+                    tweetsMinerThread.join();
+                } catch (InterruptedException e) {
+                    /* Nothing to be done, the app will be closed */
                 }
             }
         });
 
-        Thread tweetsMinerThread = new Thread(tweetsMiner);
         tweetsMinerThread.start();
         do {
             try {

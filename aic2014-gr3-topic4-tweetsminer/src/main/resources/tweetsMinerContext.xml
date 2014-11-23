@@ -115,8 +115,8 @@
         <constructor-arg>
             <bean class="opennlp.tools.namefind.TokenNameFinderModel">
                 <constructor-arg ref="enPersonNamesTrainedData"/>
-        </constructor-arg>
             </bean>
+        </constructor-arg>
     </bean>
 
     <!-- Resources -->
