@@ -16,7 +16,7 @@
         <artifactId>aic2014-gr3-topic4-parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-    <artifactId>aic2014-gr3-topic4-tweetsminer</artifactId>
+    <artifactId>aic2014-gr3-topic4-graphdb</artifactId>
 
     <build>
         <resources>

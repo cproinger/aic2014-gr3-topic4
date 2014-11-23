@@ -27,6 +27,11 @@
         <property name="twitterUserRelationshipHandlerFactory" ref="twitterUserRelationshipHandlerFactory"/>
     </bean>
 
+    <bean id="testTwitterUser" class="at.tuwien.aic2014.gr3.domain.TwitterUser" lazy-init="true">
+        <property name="id" value="1"/>
+    </bean>
+
+
     <!-- Twitter status processors -->
     <bean id="mentionedUsersStatusProcessor" class="at.tuwien.aic2014.gr3.tweetsminer.MentionedUsersTwitterStatusProcessor"
           lazy-init="true">

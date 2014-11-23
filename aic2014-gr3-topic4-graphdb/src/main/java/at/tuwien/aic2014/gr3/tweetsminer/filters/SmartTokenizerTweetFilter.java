@@ -3,7 +3,6 @@ package at.tuwien.aic2014.gr3.tweetsminer.filters;
 import opennlp.tools.namefind.NameFinderME;
 import opennlp.tools.tokenize.Tokenizer;
 import opennlp.tools.util.Span;
-import org.apache.log4j.Logger;
 
 import java.util.*;
 

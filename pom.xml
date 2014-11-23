@@ -9,7 +9,7 @@
 		<module>aic2014-gr3-topic4-shared</module>
 		<module>aic2014-gr3-topic4-docstore</module>
 		<module>aic2014-gr3-topic4-twitter</module>
-		<module>aic2014-gr3-topic4-tweetsminer</module>
+		<module>aic2014-gr3-topic4-graphdb</module>
 		<module>aic2014-gr3-topic4-sql</module>
 		<module>aic2014-gr3-topic4-webapp</module>
 	</modules>

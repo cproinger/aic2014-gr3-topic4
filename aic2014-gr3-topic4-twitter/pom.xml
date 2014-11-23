@@ -32,6 +32,11 @@
 			<artifactId>aic2014-gr3-topic4-sql</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+        <dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>aic2014-gr3-topic4-graphdb</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.twitter4j</groupId>
 			<artifactId>twitter4j-core</artifactId>
