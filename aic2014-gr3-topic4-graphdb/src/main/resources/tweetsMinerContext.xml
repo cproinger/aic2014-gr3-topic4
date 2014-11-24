@@ -6,12 +6,14 @@
        default-lazy-init="true">
 
     <context:property-placeholder location="tweetsMiner.properties"/>
+    <context:annotation-config/>
 
     <!-- Tweets Miner config -->
     <bean id="tweetsMiner" class="at.tuwien.aic2014.gr3.tweetsminer.TwitterStreamingStatusesMiner">
         <property name="tweetRepository" ref="tweetsRepository"/>
         <property name="twitterStatusProcessors">
             <list>
+                <ref bean="extractUserStatusProcessor"/>
                 <ref bean="mentionedUsersStatusProcessor"/>
                 <ref bean="mentionedHashtagsStatusProcessor"/>
                 <ref bean="repliedToStatusProcessor"/>
@@ -40,6 +42,16 @@
         <constructor-arg type="java.lang.String" value="${tweetsMiner.mongodb.db}"/>
     </bean>
 
+    <!-- Postgres DB config -->
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="url" value="${tweetsMiner.sql.url}"/>
+        <property name="driverClassName" value="${tweetsMiner.sql.driver}"/>
+        <property name="username" value="${tweetsMiner.sql.username}"/>
+        <property name="password" value="${tweetsMiner.sql.password}"/>
+    </bean>
+
+    <bean id="postgresDb" factory-bean="dataSource" factory-method="getConnection"/>
+
     <!-- DAO Layer -->
     <bean id="twitterUserRelationshipHandlerFactory" class="at.tuwien.aic2014.gr3.dao.TwitterUserRelationshipHandlerFactory">
         <property name="graphDb" ref="graphdb"/>
@@ -50,7 +62,16 @@
         <property name="twitterUserRelationshipHandlerFactory" ref="twitterUserRelationshipHandlerFactory"/>
     </bean>
 
+    <bean id="userRepo" class="at.tuwien.aic2014.gr3.sql.SqlUserRepository">
+        <property name="connection" ref="postgresDb"/>
+    </bean>
+
     <!-- Twitter status processors -->
+    <bean id="extractUserStatusProcessor" class="at.tuwien.aic2014.gr3.sql.SQLTweetProcessing">
+        <constructor-arg name="tweetRepo" ref="tweetsRepository"/>
+        <constructor-arg name="userRepo" ref="userRepo"/>
+    </bean>
+
     <bean id="mentionedUsersStatusProcessor" class="at.tuwien.aic2014.gr3.tweetsminer.MentionedUsersTwitterStatusProcessor">
         <property name="twitterUserDao" ref="neo4jTwitterUserDao"/>
     </bean>

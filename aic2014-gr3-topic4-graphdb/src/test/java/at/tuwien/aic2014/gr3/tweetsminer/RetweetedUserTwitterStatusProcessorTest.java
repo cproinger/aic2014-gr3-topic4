@@ -1,6 +1,7 @@
 package at.tuwien.aic2014.gr3.tweetsminer;
 
 import at.tuwien.aic2014.gr3.dao.TwitterUserRelationships;
+import at.tuwien.aic2014.gr3.shared.TwitterStatusProcessor;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

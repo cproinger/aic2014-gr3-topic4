@@ -2,6 +2,7 @@ package at.tuwien.aic2014.gr3.tweetsminer;
 
 import at.tuwien.aic2014.gr3.dao.Neo4jTwitterUserDao;
 import at.tuwien.aic2014.gr3.domain.TwitterUser;
+import at.tuwien.aic2014.gr3.shared.TwitterStatusProcessor;
 import org.apache.log4j.Logger;
 import twitter4j.Status;
 import twitter4j.UserMentionEntity;

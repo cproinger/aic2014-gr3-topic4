@@ -3,17 +3,13 @@ package at.tuwien.aic2014.gr3.sql;
 import at.tuwien.aic2014.gr3.docstore.DocStoreConfig;
 import at.tuwien.aic2014.gr3.domain.TwitterUser;
 import at.tuwien.aic2014.gr3.domain.TwitterUserUtils;
-import at.tuwien.aic2014.gr3.shared.TweetProcessing;
 import at.tuwien.aic2014.gr3.shared.TweetRepository;
-
+import at.tuwien.aic2014.gr3.shared.TwitterStatusProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.stereotype.Service;
-
 import twitter4j.Status;
 import twitter4j.User;
-
-import javax.sql.DataSource;
 
 import java.util.Iterator;
 
@@ -25,28 +21,24 @@ import java.util.Iterator;
  * To change this template use File | Settings | File Templates.
  */
 @Service
-public class SQLTweetProcessing implements TweetProcessing {
+public class SQLTweetProcessing implements TwitterStatusProcessor {
 	
     private TweetRepository tweetRepo;
     private SqlUserRepository userRepo;
     
-    @Autowired
-    private DataSource dataSource;
-
     @Autowired
     public SQLTweetProcessing(TweetRepository tweetRepo, SqlUserRepository userRepo) {
     	this.tweetRepo = tweetRepo;
     	this.userRepo = userRepo;
     }
     
-
-	private void processStatus(Status stat) {
-		TwitterUserUtils utils = new TwitterUserUtils();
-		User user = stat.getUser();
+    @Override
+	public void process(Status twitterStatus) {
+		User user = twitterStatus.getUser();
 		//scheinbar gibts welche ohne user???
 		if(user == null)
 			return;
-		TwitterUser tu = utils.create(user);
+		TwitterUser tu = TwitterUserUtils.create(user);
 		userRepo.save(tu);
 	}
 
@@ -54,7 +46,7 @@ public class SQLTweetProcessing implements TweetProcessing {
 		for(Iterator<Status> it = tweetRepo.iterateTweetsWithUnprocessedUser(); it.hasNext(); ) {
 			Status stat = it.next();
 			System.out.println("process tweet " +stat.getId());
-			processStatus(stat);
+			process(stat);
 			it.remove();
 		}
 	}

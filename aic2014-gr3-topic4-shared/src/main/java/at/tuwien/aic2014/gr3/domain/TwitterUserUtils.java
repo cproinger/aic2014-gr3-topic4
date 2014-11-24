@@ -4,7 +4,7 @@ import twitter4j.User;
 
 public class TwitterUserUtils {
 
-    public TwitterUser create(User fromUser) {
+    public static TwitterUser create(User fromUser) {
         TwitterUser twitterUser = new TwitterUser();
 
         twitterUser.setId(fromUser.getId());

@@ -1,6 +1,7 @@
 package at.tuwien.aic2014.gr3.tweetsminer;
 
 import at.tuwien.aic2014.gr3.shared.TweetRepository;
+import at.tuwien.aic2014.gr3.shared.TwitterStatusProcessor;
 import org.apache.log4j.Logger;
 import twitter4j.Status;
 
