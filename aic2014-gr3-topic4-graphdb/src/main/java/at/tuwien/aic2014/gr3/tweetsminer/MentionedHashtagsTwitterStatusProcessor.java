@@ -1,6 +1,6 @@
 package at.tuwien.aic2014.gr3.tweetsminer;
 
-import at.tuwien.aic2014.gr3.dao.Neo4jTwitterUserDao;
+import at.tuwien.aic2014.gr3.graphdb.Neo4jTwitterUserRepository;
 import at.tuwien.aic2014.gr3.domain.TwitterUser;
 import at.tuwien.aic2014.gr3.shared.TwitterStatusProcessor;
 import org.apache.log4j.Logger;
@@ -11,9 +11,9 @@ public class MentionedHashtagsTwitterStatusProcessor implements TwitterStatusPro
 
     private static final Logger log = Logger.getLogger(MentionedHashtagsTwitterStatusProcessor.class);
 
-    private Neo4jTwitterUserDao twitterUserDao;
+    private Neo4jTwitterUserRepository twitterUserDao;
 
-    public void setTwitterUserDao(Neo4jTwitterUserDao twitterUserDao) {
+    public void setTwitterUserDao(Neo4jTwitterUserRepository twitterUserDao) {
         this.twitterUserDao = twitterUserDao;
     }
 
@@ -27,7 +27,7 @@ public class MentionedHashtagsTwitterStatusProcessor implements TwitterStatusPro
         for (HashtagEntity hashtag : twitterStatus.getHashtagEntities()) {
             log.debug("Found mentioned hashtag: " + hashtag);
 
-            twitterUserDao.user(tweetAuthor).mentionedHashtag(hashtag.getText());
+            twitterUserDao.relation(tweetAuthor).mentionedHashtag(hashtag.getText());
         }
 
         log.debug("Mentioned hashtags successfully processed.");

@@ -1,6 +1,6 @@
 package at.tuwien.aic2014.gr3.tweetsminer;
 
-import at.tuwien.aic2014.gr3.dao.Neo4jTwitterUserDao;
+import at.tuwien.aic2014.gr3.graphdb.Neo4jTwitterUserRepository;
 import at.tuwien.aic2014.gr3.domain.TwitterUser;
 import at.tuwien.aic2014.gr3.shared.TwitterStatusProcessor;
 import org.apache.log4j.Logger;
@@ -11,9 +11,9 @@ public class MentionedUsersTwitterStatusProcessor implements TwitterStatusProces
 
     private static final Logger log = Logger.getLogger(MentionedUsersTwitterStatusProcessor.class);
 
-    private Neo4jTwitterUserDao twitterUserDao;
+    private Neo4jTwitterUserRepository twitterUserDao;
 
-    public void setTwitterUserDao(Neo4jTwitterUserDao twitterUserDao) {
+    public void setTwitterUserDao(Neo4jTwitterUserRepository twitterUserDao) {
         this.twitterUserDao = twitterUserDao;
     }
 
@@ -30,7 +30,7 @@ public class MentionedUsersTwitterStatusProcessor implements TwitterStatusProces
 
             log.debug("Found mentioned user: " + u);
 
-            twitterUserDao.user(tweetAuthor).mentioned(mentionedUser);
+            twitterUserDao.relation(tweetAuthor).mentioned(mentionedUser);
         }
 
         log.debug("Mentioned users successfully processed.");

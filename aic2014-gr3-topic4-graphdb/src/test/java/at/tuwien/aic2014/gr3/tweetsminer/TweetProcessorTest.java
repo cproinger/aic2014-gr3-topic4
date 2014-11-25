@@ -1,7 +1,7 @@
 package at.tuwien.aic2014.gr3.tweetsminer;
 
-import at.tuwien.aic2014.gr3.dao.Neo4jTwitterUserDao;
-import at.tuwien.aic2014.gr3.dao.Neo4jTwitterUserRelationshipHandler;
+import at.tuwien.aic2014.gr3.graphdb.Neo4jTwitterUserRepository;
+import at.tuwien.aic2014.gr3.graphdb.Neo4jTwitterUserRelationshipHandler;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -73,11 +73,11 @@ public abstract class TweetProcessorTest {
 
         String query = String.format(
                 "MATCH (u1:%s {%s:{u1_id}}) - [rel:%s] -> (u2:%s {%s:{u2_id}}) RETURN rel",
-                Neo4jTwitterUserDao.TWITTER_USER_NODE_LABEL.name(),
-                Neo4jTwitterUserDao.TWITTER_USER_ID_PROP,
+                Neo4jTwitterUserRepository.TWITTER_USER_NODE_LABEL.name(),
+                Neo4jTwitterUserRepository.TWITTER_USER_ID_PROP,
                 relationship,
-                Neo4jTwitterUserDao.TWITTER_USER_NODE_LABEL.name(),
-                Neo4jTwitterUserDao.TWITTER_USER_ID_PROP);
+                Neo4jTwitterUserRepository.TWITTER_USER_NODE_LABEL.name(),
+                Neo4jTwitterUserRepository.TWITTER_USER_ID_PROP);
         Map<String, Object> params = new HashMap<>();
         params.put("u1_id", u1Id);
         params.put("u2_id", u2Id);
@@ -95,8 +95,8 @@ public abstract class TweetProcessorTest {
 
         String query = String.format(
                 "MATCH (u1:%s {%s:{u1_id}}) - [rel:%s] -> (hashtag:%s {%s:{hashtag}}) RETURN rel",
-                Neo4jTwitterUserDao.TWITTER_USER_NODE_LABEL.name(),
-                Neo4jTwitterUserDao.TWITTER_USER_ID_PROP,
+                Neo4jTwitterUserRepository.TWITTER_USER_NODE_LABEL.name(),
+                Neo4jTwitterUserRepository.TWITTER_USER_ID_PROP,
                 "MENTIONED_HASHTAG",
                 Neo4jTwitterUserRelationshipHandler.HASHTAG_LABEL.name(),
                 Neo4jTwitterUserRelationshipHandler.HASHTAG_NAME_PROP);
@@ -117,8 +117,8 @@ public abstract class TweetProcessorTest {
 
         String query = String.format(
                 "MATCH (u1:%s {%s:{u1_id}}) - [rel:%s] -> (topic:%s {%s:{topic}}) RETURN rel",
-                Neo4jTwitterUserDao.TWITTER_USER_NODE_LABEL.name(),
-                Neo4jTwitterUserDao.TWITTER_USER_ID_PROP,
+                Neo4jTwitterUserRepository.TWITTER_USER_NODE_LABEL.name(),
+                Neo4jTwitterUserRepository.TWITTER_USER_ID_PROP,
                 "MENTIONED_TOPIC",
                 Neo4jTwitterUserRelationshipHandler.TOPIC_LABEL.name(),
                 Neo4jTwitterUserRelationshipHandler.TOPIC_NAME_PROP);
@@ -163,8 +163,8 @@ public abstract class TweetProcessorTest {
 
     void assertUserUniquePresence(long userId) {
         String query =
-                "MATCH (n:" + Neo4jTwitterUserDao.TWITTER_USER_NODE_LABEL.name() + ") " +
-                "WHERE n." + Neo4jTwitterUserDao.TWITTER_USER_ID_PROP + " = {id} " +
+                "MATCH (n:" + Neo4jTwitterUserRepository.TWITTER_USER_NODE_LABEL.name() + ") " +
+                "WHERE n." + Neo4jTwitterUserRepository.TWITTER_USER_ID_PROP + " = {id} " +
                 "RETURN n";
         Map<String, Object> params = new HashMap<>();
         params.put("id", userId);

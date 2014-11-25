@@ -33,7 +33,7 @@
         <property name="db" ref="mongodb"/>
     </bean>
 
-    <bean id="mongoClient" class="com.mongodb.MongoClient">
+    <bean id="mongoClient" class="com.mongodb.MongoClient" destroy-method="close">
         <constructor-arg name="host" value="${tweetsMiner.mongodb.host}"/>
         <constructor-arg name="port" value="${tweetsMiner.mongodb.port}"/>
     </bean>
@@ -50,14 +50,14 @@
         <property name="password" value="${tweetsMiner.sql.password}"/>
     </bean>
 
-    <bean id="postgresDb" factory-bean="dataSource" factory-method="getConnection"/>
+    <bean id="postgresDb" factory-bean="dataSource" factory-method="getConnection" destroy-method="close"/>
 
     <!-- DAO Layer -->
-    <bean id="twitterUserRelationshipHandlerFactory" class="at.tuwien.aic2014.gr3.dao.TwitterUserRelationshipHandlerFactory">
+    <bean id="twitterUserRelationshipHandlerFactory" class="at.tuwien.aic2014.gr3.graphdb.TwitterUserRelationshipHandlerFactory">
         <property name="graphDb" ref="graphdb"/>
     </bean>
 
-    <bean id="neo4jTwitterUserDao" class="at.tuwien.aic2014.gr3.dao.Neo4jTwitterUserDao">
+    <bean id="neo4jTwitterUserDao" class="at.tuwien.aic2014.gr3.graphdb.Neo4jTwitterUserRepository">
         <property name="graphDb" ref="graphdb"/>
         <property name="twitterUserRelationshipHandlerFactory" ref="twitterUserRelationshipHandlerFactory"/>
     </bean>

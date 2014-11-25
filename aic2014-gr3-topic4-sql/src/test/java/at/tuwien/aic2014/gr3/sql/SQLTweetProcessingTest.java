@@ -1,5 +1,6 @@
 package at.tuwien.aic2014.gr3.sql;
 
+import at.tuwien.aic2014.gr3.shared.RepositoryException;
 import at.tuwien.aic2014.gr3.shared.TweetRepository;
 import org.junit.Rule;
 import org.junit.Test;
@@ -66,7 +67,7 @@ public class SQLTweetProcessingTest {
     }
     
     @Test
-    public void testTweetProcessing() throws IOException, TwitterException {
+    public void testTweetProcessing() throws Exception {
     	InputStream is =
                 getClass().getResourceAsStream("/sample-json.txt");
         BufferedReader in = new BufferedReader(new InputStreamReader(is));

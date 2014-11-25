@@ -1,0 +1,10 @@
+package at.tuwien.aic2014.gr3.shared;
+
+import at.tuwien.aic2014.gr3.domain.TwitterUser;
+
+public interface TwitterUserRepository {
+
+    public TwitterUser save(TwitterUser twitterUser) throws RepositoryException;
+
+    public TwitterUser readById (long userId) throws RepositoryException;
+}

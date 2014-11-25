@@ -10,9 +10,9 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.stereotype.Service;
 
-import at.tuwien.aic2014.gr3.dao.Neo4jTwitterUserDao;
-import at.tuwien.aic2014.gr3.dao.TwitterUserRelationshipHandler;
-import at.tuwien.aic2014.gr3.dao.TwitterUserRelationships;
+import at.tuwien.aic2014.gr3.graphdb.Neo4jTwitterUserRepository;
+import at.tuwien.aic2014.gr3.graphdb.TwitterUserRelationshipHandler;
+import at.tuwien.aic2014.gr3.graphdb.TwitterUserRelationships;
 import at.tuwien.aic2014.gr3.domain.TwitterUser;
 import at.tuwien.aic2014.gr3.sql.DummySQLTwitter;
 import at.tuwien.aic2014.gr3.sql.SQLTwitterDao;
@@ -30,9 +30,9 @@ public class RelationshipMiner {
 	
 	private Twitter twitter;
 	
-    private Neo4jTwitterUserDao neo4jTwitterUserDao;
+    private Neo4jTwitterUserRepository neo4jTwitterUserDao;
 	
-    public void setNeo4jTwitterUserDao(Neo4jTwitterUserDao neo4jTwitterUserDao){
+    public void setNeo4jTwitterUserDao(Neo4jTwitterUserRepository neo4jTwitterUserDao){
     	this.neo4jTwitterUserDao = neo4jTwitterUserDao;
     }
 	
@@ -140,7 +140,7 @@ public class RelationshipMiner {
 				//TODO: neo4jTwitterUserDao.find()
 				TwitterUser frienduser = new TwitterUser();
 				frienduser.setId(friendId);
-				neo4jTwitterUserDao.create(frienduser);
+				neo4jTwitterUserDao.save(frienduser);
 				crawlRelationship(frienduser, depth-1);
 			}
 			for(long friendId : follower){
@@ -180,13 +180,13 @@ public class RelationshipMiner {
 		for(long l : list){
 			TwitterUser user_rel = new TwitterUser();
 			user_rel.setId(l);
-			neo4jTwitterUserDao.create(user_rel); // TODO createOrUpdate()!!!
+			neo4jTwitterUserDao.save(user_rel); // TODO save()!!!
 			addRel(user, user_rel,rel);
 		}
 	}
 	
 	private void addRel(TwitterUser from , TwitterUser to, TwitterUserRelationships rel){
-		TwitterUserRelationshipHandler relationship = neo4jTwitterUserDao.user(from);
+		TwitterUserRelationshipHandler relationship = neo4jTwitterUserDao.relation(from);
 		switch (rel) {
 		case FOLLOWS:
 			relationship.follows(to);
@@ -222,7 +222,7 @@ public class RelationshipMiner {
 		System.setProperty("twitter4j.jsonStoreEnabled", "true");
 		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(TwitterConfig.class);
 		ApplicationContext applicationContext = new ClassPathXmlApplicationContext("tweetsMinerContext.xml");
-		Neo4jTwitterUserDao neo4jTwitterUserDao = (Neo4jTwitterUserDao) applicationContext.getBean("neo4jTwitterUserDao");
+		Neo4jTwitterUserRepository neo4jTwitterUserDao = (Neo4jTwitterUserRepository) applicationContext.getBean("neo4jTwitterUserDao");
 		RelationshipMiner m = ctx.getBean(RelationshipMiner.class);	
 		m.setNeo4jTwitterUserDao(neo4jTwitterUserDao);
 		m.start();

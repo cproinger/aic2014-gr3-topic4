@@ -1,6 +1,6 @@
 package at.tuwien.aic2014.gr3.tweetsminer;
 
-import at.tuwien.aic2014.gr3.dao.Neo4jTwitterUserDao;
+import at.tuwien.aic2014.gr3.graphdb.Neo4jTwitterUserRepository;
 import at.tuwien.aic2014.gr3.domain.TwitterUser;
 import at.tuwien.aic2014.gr3.shared.TwitterStatusProcessor;
 import org.apache.log4j.Logger;
@@ -10,9 +10,9 @@ public class RetweetedUserTwitterStatusProcessor implements TwitterStatusProcess
 
     private static final Logger log = Logger.getLogger(RetweetedUserTwitterStatusProcessor.class);
 
-    private Neo4jTwitterUserDao twitterUserDao;
+    private Neo4jTwitterUserRepository twitterUserDao;
 
-    public void setTwitterUserDao(Neo4jTwitterUserDao twitterUserDao) {
+    public void setTwitterUserDao(Neo4jTwitterUserRepository twitterUserDao) {
         this.twitterUserDao = twitterUserDao;
     }
 
@@ -29,7 +29,7 @@ public class RetweetedUserTwitterStatusProcessor implements TwitterStatusProcess
             TwitterUser retweetedUser = new TwitterUser();
             retweetedUser.setId(twitterStatus.getRetweetedStatus().getUser().getId());
 
-            twitterUserDao.user(tweetAuthor).retweeted(retweetedUser);
+            twitterUserDao.relation(tweetAuthor).retweeted(retweetedUser);
         }
 
         log.debug("Retweeted user successfully processed.");

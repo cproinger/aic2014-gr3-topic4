@@ -1,12 +1,15 @@
-package at.tuwien.aic2014.gr3.dao;
+package at.tuwien.aic2014.gr3.graphdb;
 
 import at.tuwien.aic2014.gr3.domain.TwitterUser;
+import at.tuwien.aic2014.gr3.shared.TwitterUserRepository;
 import org.apache.log4j.Logger;
 import org.neo4j.graphdb.*;
+import org.springframework.stereotype.Repository;
 
-public class Neo4jTwitterUserDao implements TwitterUserDao {
+@Repository
+public class Neo4jTwitterUserRepository implements TwitterUserRepository {
 
-    private final static Logger log = Logger.getLogger(Neo4jTwitterUserDao.class);
+    private final static Logger log = Logger.getLogger(Neo4jTwitterUserRepository.class);
     public final static String TWITTER_USER_ID_PROP = "twitterUserId";
 
     private GraphDatabaseService graphDb;
@@ -23,12 +26,12 @@ public class Neo4jTwitterUserDao implements TwitterUserDao {
     }
 
     @Override
-    public TwitterUser create(TwitterUser twitterUser) {
+    public TwitterUser save(TwitterUser twitterUser) {
         log.debug("Creating twitter user node...");
 
         assert (twitterUser.getId() > 0);
         if (this.readById(twitterUser.getId()) != null) {
-            log.debug ("Twitter User " + twitterUser.getId() + " already exists!");
+            log.debug ("Twitter User " + twitterUser.getId() + " already exists! Nothing to be done");
             return twitterUser;
         }
 
@@ -45,12 +48,12 @@ public class Neo4jTwitterUserDao implements TwitterUserDao {
     }
 
     @Override
-    public TwitterUser readById(long id) {
+    public TwitterUser readById(long userId) {
         log.debug("Reading twitter user by ID...");
         TwitterUser twitterUser = null;
 
         ResourceIterator<Node> it = graphDb
-                .findNodesByLabelAndProperty(TWITTER_USER_NODE_LABEL, TWITTER_USER_ID_PROP, id)
+                .findNodesByLabelAndProperty(TWITTER_USER_NODE_LABEL, TWITTER_USER_ID_PROP, userId)
                 .iterator();
 
         if (it.hasNext()) {
@@ -66,12 +69,7 @@ public class Neo4jTwitterUserDao implements TwitterUserDao {
         return twitterUser;
     }
 
-    @Override
-    public void update(TwitterUser twitterUser) {
-        //Does nothing, as there is nothing to update here.
-    }
-
-    public TwitterUserRelationshipHandler user(TwitterUser twitterUser) {
+    public TwitterUserRelationshipHandler relation(TwitterUser twitterUser) {
         return this.twitterUserRelationshipHandlerFactory
                 .createTwitterUserRelationshipHandler(twitterUser);
     }

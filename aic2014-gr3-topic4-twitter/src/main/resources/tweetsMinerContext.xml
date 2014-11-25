@@ -41,11 +41,11 @@
     </bean>
 
     <!-- DAO Layer -->
-    <bean id="twitterUserRelationshipHandlerFactory" class="at.tuwien.aic2014.gr3.dao.TwitterUserRelationshipHandlerFactory">
+    <bean id="twitterUserRelationshipHandlerFactory" class="at.tuwien.aic2014.gr3.graphdb.TwitterUserRelationshipHandlerFactory">
         <property name="graphDb" ref="graphdb"/>
     </bean>
 
-    <bean id="neo4jTwitterUserDao" class="at.tuwien.aic2014.gr3.dao.Neo4jTwitterUserDao">
+    <bean id="neo4jTwitterUserDao" class="at.tuwien.aic2014.gr3.graphdb.Neo4jTwitterUserRepository">
         <property name="graphDb" ref="graphdb"/>
         <property name="twitterUserRelationshipHandlerFactory" ref="twitterUserRelationshipHandlerFactory"/>
     </bean>

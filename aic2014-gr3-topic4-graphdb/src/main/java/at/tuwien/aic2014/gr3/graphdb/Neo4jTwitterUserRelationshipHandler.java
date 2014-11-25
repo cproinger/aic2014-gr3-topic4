@@ -1,4 +1,4 @@
-package at.tuwien.aic2014.gr3.dao;
+package at.tuwien.aic2014.gr3.graphdb;
 
 import at.tuwien.aic2014.gr3.domain.TwitterUser;
 import org.apache.log4j.Logger;
@@ -128,8 +128,8 @@ public class Neo4jTwitterUserRelationshipHandler implements  TwitterUserRelation
 
     private Node getOrCreateUserNode(TwitterUser twitterUser) {
         ResourceIterator<Node> it = graphDb
-                .findNodesByLabelAndProperty(Neo4jTwitterUserDao.TWITTER_USER_NODE_LABEL,
-                        Neo4jTwitterUserDao.TWITTER_USER_ID_PROP, twitterUser.getId())
+                .findNodesByLabelAndProperty(Neo4jTwitterUserRepository.TWITTER_USER_NODE_LABEL,
+                        Neo4jTwitterUserRepository.TWITTER_USER_ID_PROP, twitterUser.getId())
                 .iterator();
 
         if (it.hasNext()) {
@@ -137,8 +137,8 @@ public class Neo4jTwitterUserRelationshipHandler implements  TwitterUserRelation
             return it.next();
         }
 
-        Node userNode = graphDb.createNode(Neo4jTwitterUserDao.TWITTER_USER_NODE_LABEL);
-        userNode.setProperty(Neo4jTwitterUserDao.TWITTER_USER_ID_PROP, twitterUser.getId());
+        Node userNode = graphDb.createNode(Neo4jTwitterUserRepository.TWITTER_USER_NODE_LABEL);
+        userNode.setProperty(Neo4jTwitterUserRepository.TWITTER_USER_ID_PROP, twitterUser.getId());
 
         log.debug("Twitter user node " + twitterUser.getId() + " successfully created!");
 

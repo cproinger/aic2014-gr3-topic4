@@ -3,8 +3,10 @@ package at.tuwien.aic2014.gr3.sql;
 import at.tuwien.aic2014.gr3.docstore.DocStoreConfig;
 import at.tuwien.aic2014.gr3.domain.TwitterUser;
 import at.tuwien.aic2014.gr3.domain.TwitterUserUtils;
+import at.tuwien.aic2014.gr3.shared.RepositoryException;
 import at.tuwien.aic2014.gr3.shared.TweetRepository;
 import at.tuwien.aic2014.gr3.shared.TwitterStatusProcessor;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,8 @@ public class SQLTweetProcessing implements TwitterStatusProcessor {
 	
     private TweetRepository tweetRepo;
     private SqlUserRepository userRepo;
+
+    private static final Logger log = Logger.getLogger(SQLTweetProcessing.class);
     
     @Autowired
     public SQLTweetProcessing(TweetRepository tweetRepo, SqlUserRepository userRepo) {
@@ -39,8 +43,12 @@ public class SQLTweetProcessing implements TwitterStatusProcessor {
 		if(user == null)
 			return;
 		TwitterUser tu = TwitterUserUtils.create(user);
-		userRepo.save(tu);
-	}
+        try {
+            userRepo.save(tu);
+        } catch (RepositoryException e) {
+            log.error("Error while saving user " + tu.getId(), e);
+        }
+    }
 
 	public void processAll() {
 		for(Iterator<Status> it = tweetRepo.iterateTweetsWithUnprocessedUser(); it.hasNext(); ) {

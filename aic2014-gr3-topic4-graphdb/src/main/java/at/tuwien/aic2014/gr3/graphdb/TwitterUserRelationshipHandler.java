@@ -1,4 +1,4 @@
-package at.tuwien.aic2014.gr3.dao;
+package at.tuwien.aic2014.gr3.graphdb;
 
 import at.tuwien.aic2014.gr3.domain.TwitterUser;
 
