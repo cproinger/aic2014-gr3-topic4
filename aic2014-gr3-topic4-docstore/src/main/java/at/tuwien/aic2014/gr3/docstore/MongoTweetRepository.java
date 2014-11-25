@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 
+import com.mongodb.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,13 +16,6 @@ import twitter4j.TwitterObjectFactory;
 import at.tuwien.aic2014.gr3.domain.StatusRange;
 import at.tuwien.aic2014.gr3.shared.TweetRepository;
 
-import com.mongodb.AggregationOutput;
-import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
 
 @Repository
@@ -143,7 +137,8 @@ public class MongoTweetRepository implements TweetRepository {
 	public Iterator<Status> iterateTweetsWithUnprocessedUser() {
 		final DBCursor tweetsWithUnprocressedUser = getCollection().find(
 				new BasicDBObject(AIC_PROCESSED_USER, new BasicDBObject("$exists",
-						false)));
+						false)))
+                .addOption(Bytes.QUERYOPTION_NOTIMEOUT);
 		LOG.info("tweetsWithUnprocressedUser: " + tweetsWithUnprocressedUser.count());
 		
 		return new MarkProcessedStatusIterator(tweetsWithUnprocressedUser, AIC_PROCESSED_USER);
