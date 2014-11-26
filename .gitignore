@@ -23,3 +23,5 @@ bin/
 
 # spring
 .springBeans
+
+twitter4j.properties

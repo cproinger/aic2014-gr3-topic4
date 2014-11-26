@@ -1,6 +1,7 @@
 package at.tuwien.aic2014.gr3.graphdb;
 
 import at.tuwien.aic2014.gr3.domain.TwitterUser;
+import at.tuwien.aic2014.gr3.shared.RepositoryIterator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,6 +17,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import static org.junit.Assert.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -82,7 +84,7 @@ public class Neo4jTwitterUserRepositoryTest {
 
     @Test
     public void testReadById() throws Exception {
-        assertNotNull(neo4jTwitterUserDao.readById(testTwitterUser.getId()));
+        assertEquals(testTwitterUser, neo4jTwitterUserDao.readById(testTwitterUser.getId()));
     }
 
     @Test
@@ -303,6 +305,44 @@ public class Neo4jTwitterUserRepositoryTest {
         }
 
         assertUserRelationshipTopic(testTwitterUser, topic, degree);
+    }
+
+    @Test
+    public void testReadAll() throws Exception {
+        RepositoryIterator<TwitterUser> it = neo4jTwitterUserDao.readAll();
+
+        assertTrue(it.hasNext());
+        assertEquals(testTwitterUser, it.next());
+        assertFalse(it.hasNext());
+    }
+
+    @Test
+    public void testReadAllHugeDataSet() throws Exception {
+        int size = 30000;
+        setUpHugeDataSet(size);
+
+        RepositoryIterator<TwitterUser> it = neo4jTwitterUserDao.readAll();
+
+        int nTotalTwitterUsers = 0;
+        while (it.hasNext()) {
+            it.next();
+            nTotalTwitterUsers++;
+        }
+
+        assertEquals(size, nTotalTwitterUsers);
+    }
+
+    private void setUpHugeDataSet(int size) throws Exception {
+        tearDown();
+
+        Transaction tx = graphdb.beginTx();
+
+        for (int i = 0; i < size; ++i) {
+            Node testUserNode = graphdb.createNode(Neo4jTwitterUserRepository.TWITTER_USER_NODE_LABEL);
+            testUserNode.setProperty(Neo4jTwitterUserRepository.TWITTER_USER_ID_PROP, i);
+        }
+
+        tx.success();
     }
 
     private void assertUserRelationship (TwitterUser u1, String relationship, TwitterUser u2, int degree) {

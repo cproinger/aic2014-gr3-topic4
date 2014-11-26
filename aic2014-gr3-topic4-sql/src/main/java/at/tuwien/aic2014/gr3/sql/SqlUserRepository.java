@@ -1,18 +1,27 @@
 package at.tuwien.aic2014.gr3.sql;
 
 import at.tuwien.aic2014.gr3.domain.TwitterUser;
-import at.tuwien.aic2014.gr3.domain.TwitterUserUtils;
 import at.tuwien.aic2014.gr3.shared.RepositoryException;
+import at.tuwien.aic2014.gr3.shared.RepositoryIterator;
 import at.tuwien.aic2014.gr3.shared.TwitterUserRepository;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
+import javax.sql.DataSource;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 
 @Repository
 public class SqlUserRepository implements TwitterUserRepository {
+
+    private static Logger log = Logger.getLogger(SqlUserRepository.class);
+
+    private static final long SQL_QUERY_LIMIT = 50;
 
     private static final String USER_TABLE_NAME = "TwitterUser";
 
@@ -33,14 +42,15 @@ public class SqlUserRepository implements TwitterUserRepository {
     private static final String LAST_TIME_SYNCHED_COL_NAME = "last_time_synched";
 
     @Autowired
-    private Connection connection;
+    private DataSource dataSource;
 
-    public void setConnection(Connection connection) {
-        this.connection = connection;
+    public void setDataSource(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     public long count() throws RepositoryException {
-    	try(ResultSet rs = connection.createStatement().executeQuery("select count(*) from " + USER_TABLE_NAME))  {
+    	try(Connection connection = dataSource.getConnection();
+                ResultSet rs = connection.createStatement().executeQuery("select count(*) from " + USER_TABLE_NAME))  {
     		rs.next();
     		return rs.getLong(1);
     	} catch (SQLException e) {
@@ -55,7 +65,8 @@ public class SqlUserRepository implements TwitterUserRepository {
         }
 
         try {
-            try(PreparedStatement stat = connection.prepareStatement(
+            try(Connection connection = dataSource.getConnection();
+                PreparedStatement stat = connection.prepareStatement(
                     "INSERT into " + USER_TABLE_NAME + " values("
                             + questionMarks(15) + ")");) {
                 //            stat.execute("insert into usersTwitter values(" + user.getId() + ",'" + user.getName() + "','" + user.getScreenName() + "','"
@@ -94,7 +105,8 @@ public class SqlUserRepository implements TwitterUserRepository {
                         "FROM %s " +
                         "WHERE id = ?", USER_TABLE_NAME);
 
-        try(PreparedStatement stat = connection.prepareStatement(query)) {
+        try(Connection connection = dataSource.getConnection();
+                PreparedStatement stat = connection.prepareStatement(query)) {
             stat.setLong(1, userId);
 
             try(ResultSet resultSet = stat.executeQuery()) {
@@ -110,6 +122,59 @@ public class SqlUserRepository implements TwitterUserRepository {
         return null;
     }
 
+    @Override
+    public RepositoryIterator<TwitterUser> readAll() throws RepositoryException {
+        //Simulate pagination for large result sets.
+        return new RepositoryIterator<TwitterUser>() {
+
+            private long offset = 0;
+            private Iterator<TwitterUser> wrappedIt;
+
+            @Override
+            public boolean hasNext() throws RepositoryException {
+                if (wrappedIt == null || !wrappedIt.hasNext()) {
+                    wrappedIt = readAllNextPage(offset);
+                    return wrappedIt != null && wrappedIt.hasNext();
+                }
+                else {
+                    return true;
+                }
+            }
+
+            @Override
+            public TwitterUser next() {
+                offset++;
+                return wrappedIt.next();
+            }
+        };
+    }
+
+    private Iterator<TwitterUser> readAllNextPage(long offset) throws RepositoryException {
+        log.debug("Reading next page for TwitterUser at offset " + offset);
+
+        String query = String.format(
+                "SELECT *" +
+                        "FROM %s " +
+                        "LIMIT %d " +
+                        "OFFSET %d", USER_TABLE_NAME, SQL_QUERY_LIMIT, offset);
+
+        try(Connection connection = dataSource.getConnection();
+                PreparedStatement stat = connection.prepareStatement(query);
+                ResultSet resultSet = stat.executeQuery()) {
+            List<TwitterUser> twitterUsers = new ArrayList<>();
+
+            while (resultSet.next()) {
+                twitterUsers.add(twitterUserFromResultSet(resultSet));
+            }
+
+            log.debug("Found " + twitterUsers.size() + " TwitterUsers at offset " + offset);
+
+            return twitterUsers.iterator();
+        } catch (SQLException e) {
+            throw new RepositoryException("SQL error", e);
+        }
+    }
+
 
     private boolean exists(long userId) throws RepositoryException {
         String query = String.format(
@@ -117,7 +182,8 @@ public class SqlUserRepository implements TwitterUserRepository {
                         "FROM %s " +
                         "WHERE id = ?", USER_TABLE_NAME);
 
-        try(PreparedStatement stat = connection.prepareStatement(query)) {
+        try(Connection connection = dataSource.getConnection();
+                PreparedStatement stat = connection.prepareStatement(query)) {
             stat.setLong(1, userId);
 
             try(ResultSet resultSet = stat.executeQuery()) {
@@ -175,7 +241,7 @@ public class SqlUserRepository implements TwitterUserRepository {
 
 	@PostConstruct
     public void initSQL() throws RepositoryException {
-        try {
+        try(Connection connection = dataSource.getConnection()) {
             ResultSet rs = connection.createStatement().executeQuery(
                     "select * from information_schema.tables where upper(table_name) = upper('"
                             + USER_TABLE_NAME + "')");
@@ -204,8 +270,9 @@ public class SqlUserRepository implements TwitterUserRepository {
     }
 
     public void getResults() throws SQLException {
-        Statement stat = connection.createStatement();
-        try(ResultSet rs = stat.executeQuery("Select * from usersTwitter")) {
+        try(Connection connection = dataSource.getConnection();
+                Statement stat = connection.createStatement();
+                ResultSet rs = stat.executeQuery("Select * from usersTwitter")) {
             while(rs.next()){
                 System.out.println(rs.getString("name"));
             }

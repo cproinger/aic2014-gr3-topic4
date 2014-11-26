@@ -1,5 +1,4 @@
 start mongo
-start neo4j
 
 adapt tweetsMiner.properties accordingly
 

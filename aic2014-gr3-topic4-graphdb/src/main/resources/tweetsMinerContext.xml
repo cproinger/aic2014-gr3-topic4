@@ -24,8 +24,10 @@
     </bean>
 
     <!-- Neo4j DB config -->
-    <bean id="graphdb" class="org.neo4j.rest.graphdb.RestGraphDatabase" destroy-method="shutdown">
-        <constructor-arg name="uri" value="${tweetsMiner.neo4j.url}"/>
+    <bean id="graphddFactory" class="org.neo4j.graphdb.factory.GraphDatabaseFactory"/>
+
+    <bean id="graphdb" factory-bean="graphddFactory" factory-method="newEmbeddedDatabase" destroy-method="shutdown">
+        <constructor-arg name="path" value="${tweetsMiner.neo4j.path}"/>
     </bean>
 
     <!-- Mongodb DB config -->
@@ -43,14 +45,12 @@
     </bean>
 
     <!-- Postgres DB config -->
-    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+    <bean id="sqlDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
         <property name="url" value="${tweetsMiner.sql.url}"/>
         <property name="driverClassName" value="${tweetsMiner.sql.driver}"/>
         <property name="username" value="${tweetsMiner.sql.username}"/>
         <property name="password" value="${tweetsMiner.sql.password}"/>
     </bean>
-
-    <bean id="postgresDb" factory-bean="dataSource" factory-method="getConnection" destroy-method="close"/>
 
     <!-- DAO Layer -->
     <bean id="twitterUserRelationshipHandlerFactory" class="at.tuwien.aic2014.gr3.graphdb.TwitterUserRelationshipHandlerFactory">
@@ -58,12 +58,12 @@
     </bean>
 
     <bean id="neo4jTwitterUserDao" class="at.tuwien.aic2014.gr3.graphdb.Neo4jTwitterUserRepository">
-        <property name="graphDb" ref="graphdb"/>
         <property name="twitterUserRelationshipHandlerFactory" ref="twitterUserRelationshipHandlerFactory"/>
+        <property name="graphDb" ref="graphdb"/>
     </bean>
 
     <bean id="userRepo" class="at.tuwien.aic2014.gr3.sql.SqlUserRepository">
-        <property name="connection" ref="postgresDb"/>
+        <property name="dataSource" ref="sqlDataSource"/>
     </bean>
 
     <!-- Twitter status processors -->

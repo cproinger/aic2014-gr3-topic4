@@ -1,46 +1,50 @@
 package at.tuwien.aic2014.gr3.twitter;
 
-import java.util.ArrayList;
-import java.util.List;
-
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.stereotype.Service;
-
+import at.tuwien.aic2014.gr3.domain.TwitterUser;
 import at.tuwien.aic2014.gr3.graphdb.Neo4jTwitterUserRepository;
 import at.tuwien.aic2014.gr3.graphdb.TwitterUserRelationshipHandler;
 import at.tuwien.aic2014.gr3.graphdb.TwitterUserRelationships;
-import at.tuwien.aic2014.gr3.domain.TwitterUser;
-import at.tuwien.aic2014.gr3.sql.DummySQLTwitter;
-import at.tuwien.aic2014.gr3.sql.SQLTwitterDao;
+import at.tuwien.aic2014.gr3.shared.RepositoryException;
+import at.tuwien.aic2014.gr3.shared.RepositoryIterator;
+import at.tuwien.aic2014.gr3.sql.SqlUserRepository;
+import org.apache.log4j.Logger;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.stereotype.Service;
 import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
-import twitter4j.TwitterFactory;
 import twitter4j.UserMentionEntity;
+
+import java.util.ArrayList;
 
 @Service
 public class RelationshipMiner {
 
-	@Autowired
-	private TwitterFactory twitterFactory;
-	
+    private final static Logger log = Logger.getLogger(RelationshipMiner.class);
+
+    private static Thread mainThread = null;
+    private static boolean running = false;
+
 	private Twitter twitter;
 	
     private Neo4jTwitterUserRepository neo4jTwitterUserDao;
+
+    private SqlUserRepository sqlUserRepository;
 	
     public void setNeo4jTwitterUserDao(Neo4jTwitterUserRepository neo4jTwitterUserDao){
     	this.neo4jTwitterUserDao = neo4jTwitterUserDao;
     }
-	
-	public void start(){
-		twitter = twitterFactory.getInstance();
-	}
-	
-	public long[] getFriends(long userId) throws TwitterException{
+
+    public void setSqlUserRepository(SqlUserRepository sqlUserRepository) {
+        this.sqlUserRepository = sqlUserRepository;
+    }
+
+    public void setTwitter(Twitter twitter) {
+        this.twitter = twitter;
+    }
+
+    public long[] getFriends(long userId) throws TwitterException{
 		return twitter.getFriendsIDs(userId,-1).getIDs();
 	}
 	
@@ -101,13 +105,29 @@ public class RelationshipMiner {
 //		}
 //	}
 	
-	public void crawlRealationships() throws TwitterException{
-	SQLTwitterDao sqlTwitterDao = new DummySQLTwitter(); // Ersetzten mit echtem!
-	List<TwitterUser> allUsers = sqlTwitterDao.findAll();
-	for(TwitterUser user : allUsers){
-		System.out.println(user.getId());
-		crawlRelationship(user,2);
-	}
+	public void crawlRealationships() {
+        log.info("Relationships Miner started crawling");
+
+        while (running) {
+            try {
+                RepositoryIterator<TwitterUser> it = sqlUserRepository.readAll();
+
+                while (running && it.hasNext()) {
+                    TwitterUser user = it.next();
+                    log.debug("Crawling relationships for user " + user.getId());
+
+                    try {
+                        crawlRelationship(user, 2);
+                    } catch (TwitterException e) {
+                        log.error("Crawling error reported", e);
+                    }
+                }
+            } catch (RepositoryException e) {
+                log.error("Something terrible happened", e);
+            }
+        }
+
+        log.info("Relationships Miner successfully terminated!");
 	}
 	
 	public void crawlRelationship(TwitterUser user, int depth) throws TwitterException{
@@ -128,6 +148,9 @@ public class RelationshipMiner {
 		System.out.println("Retweeted: ");
 		printListr(retweeted);
 		//Save in Neo4J
+        if (!running) {
+            return;
+        }
 		saveRelations(user, friends, TwitterUserRelationships.IS_FRIEND_OF);
 		saveRelations(user, follower, TwitterUserRelationships.FOLLOWS);
 		saveRelations(user, repliedTo, TwitterUserRelationships.REPLIED_TO);
@@ -177,10 +200,13 @@ public class RelationshipMiner {
 	}
 	
 	private void saveRelations(TwitterUser user, long[] list, TwitterUserRelationships rel){
+        if (!running) {
+            return;
+        }
 		for(long l : list){
 			TwitterUser user_rel = new TwitterUser();
 			user_rel.setId(l);
-			neo4jTwitterUserDao.save(user_rel); // TODO save()!!!
+			neo4jTwitterUserDao.save(user_rel);
 			addRel(user, user_rel,rel);
 		}
 	}
@@ -209,30 +235,28 @@ public class RelationshipMiner {
 	}
 	
 	public static void main(String[] args) throws TwitterException {
-//		long userId  = -1;
-//		try{
-//			userId = Long.parseLong(args[0]);
-//		}catch(ArrayIndexOutOfBoundsException e){
-//			System.err.println("userID in main als parameter fehlt!");
-//			throw e;
-//		}catch(NumberFormatException e){
-//			throw e;
-//			System.err.println("userID in main muss long sein!");
-//		}
+        log.info("-------- Relationships Miner App Starting --------");
+
 		System.setProperty("twitter4j.jsonStoreEnabled", "true");
-		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(TwitterConfig.class);
-		ApplicationContext applicationContext = new ClassPathXmlApplicationContext("tweetsMinerContext.xml");
-		Neo4jTwitterUserRepository neo4jTwitterUserDao = (Neo4jTwitterUserRepository) applicationContext.getBean("neo4jTwitterUserDao");
-		RelationshipMiner m = ctx.getBean(RelationshipMiner.class);	
-		m.setNeo4jTwitterUserDao(neo4jTwitterUserDao);
-		m.start();
-//		long[] ids = m.getFriends(userId);
-//		for( long id : ids){
-//			System.out.println(id);
-//		}
+		ApplicationContext applicationContext = new ClassPathXmlApplicationContext("relationshipMinerContext.xml");
+
+		RelationshipMiner m = applicationContext.getBean("relationshipMiner", RelationshipMiner.class);
+
+        running = true;
+        mainThread = Thread.currentThread();
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                log.info("Shutting Relationships Miner down...");
+                running = false;
+                try {
+                    mainThread.join();
+                } catch (InterruptedException e) {
+                    /* Nothing to be done, the app will be closed */
+                }
+            }
+        });
+
 		m.crawlRealationships();
-		
 	}
-	
-	
 }

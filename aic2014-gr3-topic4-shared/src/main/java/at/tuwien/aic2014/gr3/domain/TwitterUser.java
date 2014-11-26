@@ -23,6 +23,20 @@ public class TwitterUser {
     private boolean isProtected;
     private boolean isVerified;
 
+    @Override
+    public int hashCode() {
+        return (int) id + followersCount + friendsCount + favouritesCount + statusesCount;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null || ! (obj instanceof TwitterUser)) {
+            return false;
+        }
+
+        return this.id == ((TwitterUser) obj).id;
+    }
+
     public long getId() {
         return id;
     }

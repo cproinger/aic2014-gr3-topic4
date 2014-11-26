@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd"
+       default-lazy-init="true">
+
+    <context:property-placeholder location="relationshipMiner.properties"/>
+    <context:annotation-config/>
+
+    <!-- Relationship miner config -->
+    <bean id="relationshipMiner" class="at.tuwien.aic2014.gr3.twitter.RelationshipMiner">
+        <property name="neo4jTwitterUserDao" ref="neo4jTwitterUserDao"/>
+        <property name="sqlUserRepository" ref="userRepo"/>
+        <property name="twitter" ref="twitter"/>
+    </bean>
+
+    <!-- Twitter API config -->
+    <bean id="twitterFactory" class="twitter4j.TwitterFactory"/>
+    <bean id="twitter" factory-bean="twitterFactory" factory-method="getInstance"/>
+
+    <!-- Neo4j DB config -->
+    <bean id="graphddFactory" class="org.neo4j.graphdb.factory.GraphDatabaseFactory"/>
+
+    <bean id="graphdb" factory-bean="graphddFactory" factory-method="newEmbeddedDatabase" destroy-method="shutdown">
+        <constructor-arg name="path" value="${relationshipMiner.neo4j.path}"/>
+    </bean>
+
+    <!-- Postgres DB config -->
+    <bean id="sqlDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="url" value="${relationshipMiner.sql.url}"/>
+        <property name="driverClassName" value="${relationshipMiner.sql.driver}"/>
+        <property name="username" value="${relationshipMiner.sql.username}"/>
+        <property name="password" value="${relationshipMiner.sql.password}"/>
+    </bean>
+
+    <!-- DAO Layer -->
+    <bean id="twitterUserRelationshipHandlerFactory" class="at.tuwien.aic2014.gr3.graphdb.TwitterUserRelationshipHandlerFactory">
+        <property name="graphDb" ref="graphdb"/>
+    </bean>
+
+    <bean id="neo4jTwitterUserDao" class="at.tuwien.aic2014.gr3.graphdb.Neo4jTwitterUserRepository">
+        <property name="graphDb" ref="graphdb"/>
+        <property name="twitterUserRelationshipHandlerFactory" ref="twitterUserRelationshipHandlerFactory"/>
+    </bean>
+
+    <bean id="userRepo" class="at.tuwien.aic2014.gr3.sql.SqlUserRepository">
+        <property name="dataSource" ref="sqlDataSource"/>
+    </bean>
+</beans>

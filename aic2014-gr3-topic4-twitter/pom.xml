@@ -16,6 +16,25 @@
 	</parent>
 	<artifactId>aic2014-gr3-topic4-twitter</artifactId>
 
+    <profiles>
+        <profile>
+            <id>rel-miner</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.3.2</version>
+                        <configuration>
+                            <executable>java</executable>
+                            <mainClass>at.tuwien.aic2014.gr3.twitter.RelationshipMiner</mainClass>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
