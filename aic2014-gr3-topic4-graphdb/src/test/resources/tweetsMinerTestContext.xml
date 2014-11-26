@@ -1,18 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd"
        default-lazy-init="true">
 
+    <context:annotation-config/>
+
     <!-- DB config -->
-    <bean id="graphdbFactory" class="org.neo4j.test.TestGraphDatabaseFactory" lazy-init="true"/>
+    <bean id="graphDatabaseService" class="org.neo4j.test.ImpermanentGraphDatabase"
+          destroy-method="shutdown"/>
 
-    <bean id="graphdb" destroy-method="shutdown" factory-bean="graphdbFactory"
-          factory-method="newImpermanentDatabase" lazy-init="true"/>
+    <bean id="serverWrapper" class="org.neo4j.server.WrappingNeoServerBootstrapper"
+          init-method="start" destroy-method="stop" lazy-init="false">
+        <constructor-arg ref="graphDatabaseService"/>
+    </bean>
 
-    <bean id="executionEngine" class="org.neo4j.cypher.ExecutionEngine" lazy-init="true">
-        <constructor-arg ref="graphdb"/>
-        <constructor-arg value="DEV_NULL"/>
+    <bean id="graphdb" class="org.neo4j.rest.graphdb.RestGraphDatabase" destroy-method="shutdown">
+        <constructor-arg name="uri" value="http://localhost:7474/db/data"/>
+    </bean>
+    <bean id="engine" class="org.neo4j.rest.graphdb.query.RestCypherQueryEngine">
+        <constructor-arg name="restApi">
+            <bean factory-bean="graphdb" factory-method="getRestAPI"/>
+        </constructor-arg>
     </bean>
 
     <!-- DAO Layer -->

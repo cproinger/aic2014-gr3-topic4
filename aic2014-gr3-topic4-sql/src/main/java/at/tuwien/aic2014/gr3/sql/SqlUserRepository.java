@@ -21,7 +21,7 @@ public class SqlUserRepository implements TwitterUserRepository {
 
     private static Logger log = Logger.getLogger(SqlUserRepository.class);
 
-    private static final long SQL_QUERY_LIMIT = 50;
+    private static final int SQL_QUERY_FETCH_LIMIT = 50;
 
     private static final String USER_TABLE_NAME = "TwitterUser";
 
@@ -124,57 +124,73 @@ public class SqlUserRepository implements TwitterUserRepository {
 
     @Override
     public RepositoryIterator<TwitterUser> readAll() throws RepositoryException {
-        //Simulate pagination for large result sets.
-        return new RepositoryIterator<TwitterUser>() {
-
-            private long offset = 0;
-            private Iterator<TwitterUser> wrappedIt;
-
-            @Override
-            public boolean hasNext() throws RepositoryException {
-                if (wrappedIt == null || !wrappedIt.hasNext()) {
-                    wrappedIt = readAllNextPage(offset);
-                    return wrappedIt != null && wrappedIt.hasNext();
-                }
-                else {
-                    return true;
-                }
-            }
-
-            @Override
-            public TwitterUser next() {
-                offset++;
-                return wrappedIt.next();
-            }
-        };
-    }
-
-    private Iterator<TwitterUser> readAllNextPage(long offset) throws RepositoryException {
-        log.debug("Reading next page for TwitterUser at offset " + offset);
+        log.debug("Reading all TwitterUsers...");
 
         String query = String.format(
-                "SELECT *" +
-                        "FROM %s " +
-                        "LIMIT %d " +
-                        "OFFSET %d", USER_TABLE_NAME, SQL_QUERY_LIMIT, offset);
+                "SELECT * " +
+                "FROM %s", USER_TABLE_NAME);
 
-        try(Connection connection = dataSource.getConnection();
-                PreparedStatement stat = connection.prepareStatement(query);
-                ResultSet resultSet = stat.executeQuery()) {
-            List<TwitterUser> twitterUsers = new ArrayList<>();
+        try {
+            Connection connection = dataSource.getConnection();
+            connection.setAutoCommit(false);
 
-            while (resultSet.next()) {
-                twitterUsers.add(twitterUserFromResultSet(resultSet));
-            }
+            PreparedStatement stat = connection.prepareStatement(query);
+            stat.setFetchSize(SQL_QUERY_FETCH_LIMIT);
 
-            log.debug("Found " + twitterUsers.size() + " TwitterUsers at offset " + offset);
+            ResultSet rs = stat.executeQuery();
+            return new RepositoryIterator<TwitterUser>() {
+                @Override
+                public boolean hasNext() throws RepositoryException {
+                    try {
+                        boolean hasNext = rs.next();
+                        if (!hasNext) {
+                            finish();
+                        }
+                        return hasNext;
+                    } catch (SQLException e) {
+                        throw new RepositoryException("SQL error", e);
+                    }
+                }
 
-            return twitterUsers.iterator();
+                @Override
+                public TwitterUser next() throws RepositoryException {
+                    try {
+                        return twitterUserFromResultSet(rs);
+                    } catch (SQLException e) {
+                        throw new RepositoryException("SQL error", e);
+                    }
+                }
+
+                @Override
+                public void finish() {
+                    log.debug("Releasing TwitterUsers iterator resources...");
+
+                    try {
+                        rs.close();
+                    } catch (SQLException e) {
+                        log.error("ResultSet close error", e);
+                    }
+
+                    try {
+                        stat.close();
+                    } catch (SQLException e) {
+                    }
+
+
+                    try {
+                        connection.close();
+                    } catch (SQLException e) {
+                        log.error("Connection close error", e);
+                    }
+
+                    log.debug("TwitterUsers iterator resources released");
+                }
+            };
+
         } catch (SQLException e) {
-            throw new RepositoryException("SQL error", e);
+            throw new RepositoryException("sql error", e);
         }
     }
-
 
     private boolean exists(long userId) throws RepositoryException {
         String query = String.format(

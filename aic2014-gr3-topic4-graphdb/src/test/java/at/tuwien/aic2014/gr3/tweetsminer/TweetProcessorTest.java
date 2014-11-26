@@ -1,14 +1,13 @@
 package at.tuwien.aic2014.gr3.tweetsminer;
 
-import at.tuwien.aic2014.gr3.graphdb.Neo4jTwitterUserRepository;
 import at.tuwien.aic2014.gr3.graphdb.Neo4jTwitterUserRelationshipHandler;
+import at.tuwien.aic2014.gr3.graphdb.Neo4jTwitterUserRepository;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
-import org.neo4j.cypher.ExecutionEngine;
-import org.neo4j.cypher.ExecutionResult;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -18,10 +17,12 @@ import twitter4j.Status;
 import twitter4j.TwitterObjectFactory;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Scanner;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:tweetsMinerTestContext.xml")
@@ -36,7 +37,7 @@ public abstract class TweetProcessorTest {
     @Autowired
     private GraphDatabaseService graphdb;
     @Autowired
-    private ExecutionEngine engine;
+    private RestCypherQueryEngine engine;
 
     @Value("classpath:testingTwitterStatus.json")
     private Resource testingTweetResource;
@@ -58,7 +59,7 @@ public abstract class TweetProcessorTest {
     public void tearDown() throws Exception {
         Transaction tx = graphdb.beginTx();
 
-        engine.execute(dropAllQuery);
+        engine.query(dropAllQuery, null);
 
         tx.success();
     }
@@ -82,11 +83,13 @@ public abstract class TweetProcessorTest {
         params.put("u1_id", u1Id);
         params.put("u2_id", u2Id);
 
-        ExecutionResult res = engine.execute(query, params);
+        Iterator it = engine.query(query, params).iterator();
 
-        assertEquals(degree, res.columnAs("rel").length());
-
-        res.close();
+        for (int i = 0; i < degree; ++i) {
+            assertTrue(it.hasNext());
+            it.next();
+        }
+        assertFalse(it.hasNext());
     }
 
     void assertUserRelationshipHashtag(long uId, String hashtag, int degree) {
@@ -104,11 +107,13 @@ public abstract class TweetProcessorTest {
         params.put("u1_id", uId);
         params.put("hashtag", hashtag);
 
-        ExecutionResult res = engine.execute(query, params);
+        Iterator it = engine.query(query, params).iterator();
 
-        assertEquals(degree, res.columnAs("rel").length());
-
-        res.close();
+        for (int i = 0; i < degree; ++i) {
+            assertTrue(it.hasNext());
+            it.next();
+        }
+        assertFalse(it.hasNext());
     }
 
     void assertUserRelationshipTopic(long uId, String topic, int degree) {
@@ -126,11 +131,13 @@ public abstract class TweetProcessorTest {
         params.put("u1_id", uId);
         params.put("topic", topic);
 
-        ExecutionResult res = engine.execute(query, params);
+        Iterator it = engine.query(query, params).iterator();
 
-        assertEquals(degree, res.columnAs("rel").length());
-
-        res.close();
+        for (int i = 0; i < degree; ++i) {
+            assertTrue(it.hasNext());
+            it.next();
+        }
+        assertFalse(it.hasNext());
     }
 
     void assertHashtagUniquePresence(String hashtag) {
@@ -140,11 +147,12 @@ public abstract class TweetProcessorTest {
                 "RETURN n";
         Map<String, Object> params = new HashMap<>();
         params.put("hashtag", hashtag);
-        ExecutionResult res = engine.execute(query, params);
 
-        assertEquals(1, res.columnAs("n").length());
+        Iterator it = engine.query(query, params).iterator();
 
-        res.close();
+        assertTrue(it.hasNext());
+        it.next();
+        assertFalse(it.hasNext());
     }
 
     void assertTopicUniquePresence(String topic) {
@@ -154,11 +162,12 @@ public abstract class TweetProcessorTest {
                 "RETURN n";
         Map<String, Object> params = new HashMap<>();
         params.put("topic", topic);
-        ExecutionResult res = engine.execute(query, params);
 
-        assertEquals(1, res.columnAs("n").length());
+        Iterator it = engine.query(query, params).iterator();
 
-        res.close();
+        assertTrue(it.hasNext());
+        it.next();
+        assertFalse(it.hasNext());
     }
 
     void assertUserUniquePresence(long userId) {
@@ -168,10 +177,11 @@ public abstract class TweetProcessorTest {
                 "RETURN n";
         Map<String, Object> params = new HashMap<>();
         params.put("id", userId);
-        ExecutionResult res = engine.execute(query, params);
 
-        assertEquals(1, res.columnAs("n").length());
+        Iterator it = engine.query(query, params).iterator();
 
-        res.close();
+        assertTrue(it.hasNext());
+        it.next();
+        assertFalse(it.hasNext());
     }
 }

@@ -20,10 +20,8 @@
     <bean id="twitter" factory-bean="twitterFactory" factory-method="getInstance"/>
 
     <!-- Neo4j DB config -->
-    <bean id="graphddFactory" class="org.neo4j.graphdb.factory.GraphDatabaseFactory"/>
-
-    <bean id="graphdb" factory-bean="graphddFactory" factory-method="newEmbeddedDatabase" destroy-method="shutdown">
-        <constructor-arg name="path" value="${relationshipMiner.neo4j.path}"/>
+    <bean id="graphdb" class="org.neo4j.rest.graphdb.RestGraphDatabase" destroy-method="shutdown">
+        <constructor-arg name="uri" value="${relationshipMiner.neo4j.url}"/>
     </bean>
 
     <!-- Postgres DB config -->

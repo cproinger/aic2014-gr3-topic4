@@ -1,13 +1,13 @@
 package at.tuwien.aic2014.gr3.graphdb;
 
 import at.tuwien.aic2014.gr3.domain.TwitterUser;
-import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.rest.graphdb.RestGraphDatabase;
 
 class TwitterUserRelationshipHandlerFactory {
 
-    private GraphDatabaseService graphDb;
+    private RestGraphDatabase graphDb;
 
-    public void setGraphDb(GraphDatabaseService graphDb) {
+    public void setGraphDb(RestGraphDatabase graphDb) {
         this.graphDb = graphDb;
     }
 

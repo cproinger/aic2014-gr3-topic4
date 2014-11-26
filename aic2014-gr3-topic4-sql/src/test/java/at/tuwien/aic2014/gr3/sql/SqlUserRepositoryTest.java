@@ -13,6 +13,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -55,12 +57,44 @@ public class SqlUserRepositoryTest {
     public void testReadAllHugeDataSet() throws Exception {
         int size = 30000;
         setUpHugeDataSet(size);
+        doReadAllAsserts(size);
+    }
 
+    @Test
+    public void testReadAllConcurrentAccess() throws Exception {
+        int nUsers = 3000;
+        setUpHugeDataSet(nUsers);
+
+        int nThreads = 10;
+        List<Thread> threads = new ArrayList<>();
+
+        for (int i = 0; i < nThreads; ++i) {
+            Thread thread = new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        doReadAllAsserts(nUsers);
+                    } catch (Exception e) {
+                        fail("Unexpected exception! " + e);
+                    }
+                }
+            };
+            thread.start();
+            threads.add(thread);
+        }
+
+        for (Thread thread : threads) {
+            thread.join();
+        }
+    }
+
+    private void doReadAllAsserts(int size) throws RepositoryException {
         RepositoryIterator<TwitterUser> it = userRepo.readAll();
 
         for (int i = 0; i < size; ++i) {
             assertTrue(it.hasNext());
             assertEquals(i, it.next().getId());
+            //Thread.sleep(1000); //simulate work -> test db timeouts
         }
 
         assertFalse(it.hasNext());

@@ -6,16 +6,16 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.neo4j.cypher.ExecutionEngine;
-import org.neo4j.cypher.ExecutionResult;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import static org.junit.Assert.*;
@@ -33,7 +33,7 @@ public class Neo4jTwitterUserRepositoryTest {
     private GraphDatabaseService graphdb;
 
     @Autowired
-    private ExecutionEngine engine;
+    private RestCypherQueryEngine engine;
 
     @Autowired
     private Neo4jTwitterUserRepository neo4jTwitterUserDao;
@@ -48,7 +48,6 @@ public class Neo4jTwitterUserRepositoryTest {
         Node testUserNode = graphdb.createNode(Neo4jTwitterUserRepository.TWITTER_USER_NODE_LABEL);
         testUserNode.setProperty(Neo4jTwitterUserRepository.TWITTER_USER_ID_PROP, testTwitterUser.getId());
 
-
         tx.success();
     }
 
@@ -56,7 +55,7 @@ public class Neo4jTwitterUserRepositoryTest {
     public void tearDown() throws Exception {
         Transaction tx = graphdb.beginTx();
 
-        engine.execute(dropAllQuery);
+        engine.query(dropAllQuery, null);
 
         tx.success();
     }
@@ -318,7 +317,7 @@ public class Neo4jTwitterUserRepositoryTest {
 
     @Test
     public void testReadAllHugeDataSet() throws Exception {
-        int size = 30000;
+        int size = 30000;  //tested with 1000000.
         setUpHugeDataSet(size);
 
         RepositoryIterator<TwitterUser> it = neo4jTwitterUserDao.readAll();
@@ -360,11 +359,13 @@ public class Neo4jTwitterUserRepositoryTest {
         params.put("u1_id", u1.getId());
         params.put("u2_id", u2.getId());
 
-        ExecutionResult res = engine.execute(query, params);
+        Iterator it = engine.query(query, params).iterator();
 
-        assertEquals(degree, res.columnAs("rel").length());
-
-        res.close();
+        for (int i = 0; i < degree; ++i) {
+            assertTrue(it.hasNext());
+            it.next();
+        }
+        assertFalse(it.hasNext());
     }
 
     private void assertUserRelationshipHashtag (TwitterUser u1, String hashtag, int degree) {
@@ -382,11 +383,13 @@ public class Neo4jTwitterUserRepositoryTest {
         params.put("u1_id", u1.getId());
         params.put("hashtag", hashtag);
 
-        ExecutionResult res = engine.execute(query, params);
+        Iterator it = engine.query(query, params).iterator();
 
-        assertEquals(degree, res.columnAs("rel").length());
-
-        res.close();
+        for (int i = 0; i < degree; ++i) {
+            assertTrue(it.hasNext());
+            it.next();
+        }
+        assertFalse(it.hasNext());
     }
 
     private void assertUserRelationshipTopic (TwitterUser u1, String topic, int degree) {
@@ -404,11 +407,13 @@ public class Neo4jTwitterUserRepositoryTest {
         params.put("u1_id", u1.getId());
         params.put("topic", topic);
 
-        ExecutionResult res = engine.execute(query, params);
+        Iterator it = engine.query(query, params).iterator();
 
-        assertEquals(degree, res.columnAs("rel").length());
-
-        res.close();
+        for (int i = 0; i < degree; ++i) {
+            assertTrue(it.hasNext());
+            it.next();
+        }
+        assertFalse(it.hasNext());
     }
 
     private void assertHashtagUniquePresence(String hashtag) {
@@ -418,11 +423,12 @@ public class Neo4jTwitterUserRepositoryTest {
                 "RETURN n";
         Map<String, Object> params = new HashMap<>();
         params.put("hashtag", hashtag);
-        ExecutionResult res = engine.execute(query, params);
 
-        assertEquals(1, res.columnAs("n").length());
+        Iterator it = engine.query(query, params).iterator();
 
-        res.close();
+        assertTrue(it.hasNext());
+        it.next();
+        assertFalse(it.hasNext());
     }
 
     private void assertTopicUniquePresence(String topic) {
@@ -432,11 +438,12 @@ public class Neo4jTwitterUserRepositoryTest {
                 "RETURN n";
         Map<String, Object> params = new HashMap<>();
         params.put("topic", topic);
-        ExecutionResult res = engine.execute(query, params);
 
-        assertEquals(1, res.columnAs("n").length());
+        Iterator it = engine.query(query, params).iterator();
 
-        res.close();
+        assertTrue(it.hasNext());
+        it.next();
+        assertFalse(it.hasNext());
     }
 
     private void assertUserUniquePresence(TwitterUser user) {
@@ -446,10 +453,11 @@ public class Neo4jTwitterUserRepositoryTest {
                 "RETURN n";
         Map<String, Object> params = new HashMap<>();
         params.put("id", user.getId());
-        ExecutionResult res = engine.execute(query, params);
 
-        assertEquals(1, res.columnAs("n").length());
+        Iterator it = engine.query(query, params).iterator();
 
-        res.close();
+        assertTrue(it.hasNext());
+        it.next();
+        assertFalse(it.hasNext());
     }
 }

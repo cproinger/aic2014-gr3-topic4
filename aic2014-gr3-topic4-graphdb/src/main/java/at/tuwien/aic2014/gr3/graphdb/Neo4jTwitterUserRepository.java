@@ -5,11 +5,18 @@ import at.tuwien.aic2014.gr3.shared.RepositoryException;
 import at.tuwien.aic2014.gr3.shared.RepositoryIterator;
 import at.tuwien.aic2014.gr3.shared.TwitterUserRepository;
 import org.apache.log4j.Logger;
-import org.neo4j.cypher.ExecutionEngine;
-import org.neo4j.cypher.ExecutionResult;
-import org.neo4j.graphdb.*;
-import org.neo4j.kernel.impl.util.StringLogger;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.rest.graphdb.RestGraphDatabase;
+import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
+import org.neo4j.rest.graphdb.util.QueryResult;
 import org.springframework.stereotype.Repository;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 @Repository
 public class Neo4jTwitterUserRepository implements TwitterUserRepository {
@@ -17,15 +24,15 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository {
     private final static Logger log = Logger.getLogger(Neo4jTwitterUserRepository.class);
     public final static String TWITTER_USER_ID_PROP = "twitterUserId";
 
-    private GraphDatabaseService graphDb;
-    private ExecutionEngine engine;
+    private RestGraphDatabase graphDb;
+    private RestCypherQueryEngine engine;
     private TwitterUserRelationshipHandlerFactory twitterUserRelationshipHandlerFactory;
 
     public final static Label TWITTER_USER_NODE_LABEL = () -> "TwitterUser";
 
-    public void setGraphDb(GraphDatabaseService graphDb) {
+    public void setGraphDb(RestGraphDatabase graphDb) {
         this.graphDb = graphDb;
-        this.engine = new ExecutionEngine(graphDb, StringLogger.DEV_NULL);
+        engine = new RestCypherQueryEngine(graphDb.getRestAPI());
     }
 
     public void setTwitterUserRelationshipHandlerFactory(TwitterUserRelationshipHandlerFactory twitterUserRelationshipHandlerFactory) {
@@ -81,12 +88,10 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository {
         log.debug("Reading all twitter users from neo4j...");
 
         String query = String.format("MATCH (user:%s) RETURN user", TWITTER_USER_NODE_LABEL.name());
-        ExecutionResult result = engine.execute(query);
+        QueryResult<Map<String, Object>> result = engine.query(query, null);
 
-        scala.collection.Iterator<Node> wrappedIt = result.columnAs("user");
-
-        //Calling length exhausts the iterator...
-        //log.debug("Found " + wrappedIt.length() + " TwitterUsers in neo4j");
+        log.debug("Found " + result + " TwitterUsers in neo4j");
+        Iterator<Map<String, Object>> wrappedIt = result.iterator();
 
         return new RepositoryIterator<TwitterUser>() {
 
@@ -97,7 +102,12 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository {
 
             @Override
             public TwitterUser next() {
-                return twitterUserFromNode(wrappedIt.next());
+                return twitterUserFromNode((Node) wrappedIt.next().get("user"));
+            }
+
+            @Override
+            public void finish() {
+                /* Nothing to be released */
             }
         };
     }
