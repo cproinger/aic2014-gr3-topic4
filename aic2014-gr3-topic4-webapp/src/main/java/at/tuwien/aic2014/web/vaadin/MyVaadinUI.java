@@ -11,6 +11,7 @@ import org.dussan.vaadin.dcharts.options.Highlighter;
 import org.dussan.vaadin.dcharts.options.Options;
 import org.dussan.vaadin.dcharts.options.SeriesDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 import org.vaadin.spring.VaadinUI;
 
 import at.tuwien.aic2014.gr3.shared.TweetRepository;
@@ -27,6 +28,7 @@ import com.vaadin.ui.VerticalLayout;
 
 @Title("AIC-POLYGLOT PERSISTENCE")
 @VaadinUI
+@Configurable(preConstruction = true, dependencyCheck = true)
 public class MyVaadinUI extends UI {
 
 	private static final long serialVersionUID = 1L;
@@ -41,6 +43,7 @@ public class MyVaadinUI extends UI {
 	
 	@Override
 	protected void init(VaadinRequest request) {
+		System.out.println("tweetRepo: " + tweetRepo);
 		Component c = null;
 		
 		HorizontalLayout comp = new HorizontalLayout();
