@@ -1,9 +1,9 @@
 package at.tuwien.aic2014.gr3.graphdb;
 
-import at.tuwien.aic2014.gr3.domain.TwitterUser;
-import at.tuwien.aic2014.gr3.shared.RepositoryException;
-import at.tuwien.aic2014.gr3.shared.RepositoryIterator;
-import at.tuwien.aic2014.gr3.shared.TwitterUserRepository;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 import org.apache.log4j.Logger;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -11,15 +11,25 @@ import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.rest.graphdb.RestGraphDatabase;
 import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
+import org.neo4j.rest.graphdb.util.ConvertedResult;
 import org.neo4j.rest.graphdb.util.QueryResult;
+import org.neo4j.rest.graphdb.util.ResultConverter;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import at.tuwien.aic2014.gr3.domain.TwitterUser;
+import at.tuwien.aic2014.gr3.domain.UserRetweetedCount;
+import at.tuwien.aic2014.gr3.shared.AnalysisRepository;
+import at.tuwien.aic2014.gr3.shared.RepositoryException;
+import at.tuwien.aic2014.gr3.shared.RepositoryIterator;
+import at.tuwien.aic2014.gr3.shared.TwitterUserRepository;
 
 @Repository
-public class Neo4jTwitterUserRepository implements TwitterUserRepository {
+public class Neo4jTwitterUserRepository implements TwitterUserRepository
+	/* mal provisorisch hier gleich implementiert, kann sein das
+	 * weitere queries es nötig machen dafür ein eigenes Repository
+	 * vor dieses vorzuschalten. 
+	 */
+	, AnalysisRepository {
 
     private final static Logger log = Logger.getLogger(Neo4jTwitterUserRepository.class);
     public final static String TWITTER_USER_ID_PROP = "twitterUserId";
@@ -125,5 +135,26 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository {
         twitterUser.setId(Long.parseLong(String.valueOf(twitterUserNode.getProperty(TWITTER_USER_ID_PROP))));
 
         return twitterUser;
+    }
+    
+    @Override
+    public Iterable<UserRetweetedCount> findMostRetweetedUsers() {
+    	String statement = "MATCH (a)-[:`RETWEETED`]->(b) "
+    			+ "WITH b as usr, count(*) as c "
+    			+ "order by c DESC "
+    			+ "RETURN usr,c LIMIT 5";
+		Map<String, Object> params = new HashMap<String, Object>();
+		QueryResult<Map<String, Object>> result = engine.query(statement, params);
+		ResultConverter<Map<String, Object>, UserRetweetedCount> converter = new ResultConverter<Map<String, Object>, UserRetweetedCount>() {
+			@Override
+			public UserRetweetedCount convert(Map<String, Object> value,
+					Class<UserRetweetedCount> type) {
+				TwitterUser usr = twitterUserFromNode((Node) value.get("usr"));
+				Integer c = (Integer) value.get("c");
+				return new UserRetweetedCount(usr, c);
+			}
+		};
+		ConvertedResult<UserRetweetedCount> convertedResult = result.to(UserRetweetedCount.class, converter);
+		return convertedResult;
     }
 }
