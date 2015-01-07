@@ -1,8 +1,14 @@
 package at.tuwien.aic2014.gr3.graphdb;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.apache.log4j.Logger;
 import org.neo4j.graphdb.Label;
@@ -16,8 +22,9 @@ import org.neo4j.rest.graphdb.util.QueryResult;
 import org.neo4j.rest.graphdb.util.ResultConverter;
 import org.springframework.stereotype.Repository;
 
+import at.tuwien.aic2014.gr3.domain.InterestedUsers;
 import at.tuwien.aic2014.gr3.domain.TwitterUser;
-import at.tuwien.aic2014.gr3.domain.UserRetweetedCount;
+import at.tuwien.aic2014.gr3.domain.UserAndCount;
 import at.tuwien.aic2014.gr3.shared.AnalysisRepository;
 import at.tuwien.aic2014.gr3.shared.RepositoryException;
 import at.tuwien.aic2014.gr3.shared.RepositoryIterator;
@@ -130,6 +137,8 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
     private TwitterUser twitterUserFromNode(Node twitterUserNode) {
         TwitterUser twitterUser = new TwitterUser();
 
+        //TODO use injected component to fetch sql data as well. 
+        
         //hack to cast Integer to Long, as it seems neo4j uses Integer for
         //id persistence.
         twitterUser.setId(Long.parseLong(String.valueOf(twitterUserNode.getProperty(TWITTER_USER_ID_PROP))));
@@ -138,23 +147,90 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
     }
     
     @Override
-    public Iterable<UserRetweetedCount> findMostRetweetedUsers() {
+    public Iterable<UserAndCount> findMostRetweetedUsers() {
     	String statement = "MATCH (a)-[:`RETWEETED`]->(b) "
     			+ "WITH b as usr, count(*) as c "
     			+ "order by c DESC "
     			+ "RETURN usr,c LIMIT 5";
 		Map<String, Object> params = new HashMap<String, Object>();
 		QueryResult<Map<String, Object>> result = engine.query(statement, params);
-		ResultConverter<Map<String, Object>, UserRetweetedCount> converter = new ResultConverter<Map<String, Object>, UserRetweetedCount>() {
+		ResultConverter<Map<String, Object>, UserAndCount> converter = new ResultConverter<Map<String, Object>, UserAndCount>() {
 			@Override
-			public UserRetweetedCount convert(Map<String, Object> value,
-					Class<UserRetweetedCount> type) {
+			public UserAndCount convert(Map<String, Object> value,
+					Class<UserAndCount> type) {
 				TwitterUser usr = twitterUserFromNode((Node) value.get("usr"));
 				Integer c = (Integer) value.get("c");
-				return new UserRetweetedCount(usr, c);
+				return new UserAndCount(usr, c);
 			}
 		};
-		ConvertedResult<UserRetweetedCount> convertedResult = result.to(UserRetweetedCount.class, converter);
+		ConvertedResult<UserAndCount> convertedResult = result.to(UserAndCount.class, converter);
 		return convertedResult;
+    }
+   
+    @Override
+    public InterestedUsers findInterestedUsers() {
+    	/*
+    	 * vorkommenshäufigkeit = f(term, doc) / max(f(anyTerm, doc))
+    	 * inverse dok-häufigkeit = log N / ni, ni ... Anzahl der docs die term i beinhalten
+    	 * 
+    	 * w(i,j) = tf(i,j) * idf(i);
+    	 */
+    	//leider gibt unsere neo4j-db die information für "term frequency-inverse document frequency"
+    	//momentan nicht her, also vorerst mal nur topics zählen :-(. 
+    	//was fehlt ist die anzahl der tweets = dokumente
+    	//was man machen könnte ist den grad eines terms
+    	//im verhältnis zu den graden anderer terms zu setzen
+    	//dann ist ein user mit niedrigen verhältnissen "interseted in a broad range of topics"
+    	//und user mit hohen verhältnissen "more focused". 
+    	//=> damit das mal im ui angezeigt werden kann ist die jetzige implementierung
+    	//mal gut genug. schließlich steht im text ja "may be to limiting". 
+    	
+    	//bei mir packt der neo4j-server keine 2 solche anfragen auf einmal
+    	//glaub kaum das die VM da stärker sein wird
+    	//deshalb nur ein single-thread-executor. 
+    	ExecutorService exec = Executors.newSingleThreadExecutor();//Executors.newFixedThreadPool(2);
+    	
+		
+		Future<QueryResult<Map<String, Object>>> broadRange = exec.submit(new Callable<QueryResult<Map<String, Object>>>() {
+
+			@Override
+			public QueryResult<Map<String, Object>> call() throws Exception {
+				String statement = "MATCH m = (a)-[:MENTIONED_TOPIC]->(b) "
+						+ "WITH a as usr, b as topic "
+						+ "WITH usr, count(distinct topic) as cnt "
+						+ "ORDER BY cnt DESC "
+						+ "RETURN usr, cnt "
+						+ "LIMIT 3";
+				return engine.query(statement, null);
+			}
+		});
+		
+		Future<QueryResult<Map<String, Object>>> focused = exec.submit(new Callable<QueryResult<Map<String, Object>>>() {
+
+			@Override
+			public QueryResult<Map<String, Object>> call() throws Exception {
+				String statement = "MATCH m = (a)-[:MENTIONED_TOPIC]->(b) "
+						+ "WITH a as usr, b as topic "
+						+ "WITH usr, count(distinct topic) as cnt "
+						+ "ORDER BY cnt ASC "
+						+ "RETURN usr, cnt "
+						+ "LIMIT 3";
+				return engine.query(statement, null);
+			}
+		});
+		try {
+			ArrayList<UserAndCount> broadRangeUsers = new ArrayList<UserAndCount>();
+			for(Map<String, Object> m : broadRange.get()) {
+				broadRangeUsers.add(new UserAndCount(twitterUserFromNode((Node) m.get("usr")), (int) m.get("cnt")));
+			}
+			ArrayList<UserAndCount> focusedUsers = new ArrayList<UserAndCount>();
+			for(Map<String, Object> m : focused.get()) {
+				focusedUsers.add(new UserAndCount(twitterUserFromNode((Node) m.get("usr")), (int) m.get("cnt")));
+			}
+			
+			return new InterestedUsers(broadRangeUsers, focusedUsers);
+		} catch (InterruptedException | ExecutionException e) {
+			throw new RuntimeException("error in query", e);
+		}
     }
 }

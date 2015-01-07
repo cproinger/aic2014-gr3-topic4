@@ -1,9 +1,11 @@
 package at.tuwien.aic2014.gr3.graphdb;
 
+import at.tuwien.aic2014.gr3.domain.InterestedUsers;
 import at.tuwien.aic2014.gr3.domain.TwitterUser;
-import at.tuwien.aic2014.gr3.domain.UserRetweetedCount;
+import at.tuwien.aic2014.gr3.domain.UserAndCount;
 import at.tuwien.aic2014.gr3.shared.RepositoryIterator;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,6 +20,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.*;
@@ -226,12 +229,53 @@ public class Neo4jTwitterUserRepositoryTest {
     @Test
     public void testFindMostRetweeted() {
     	TwitterUser retweetedUser = createRetweetedUser(15);
-    	Iterable<UserRetweetedCount> result = neo4jTwitterUserDao.findMostRetweetedUsers();
-    	Iterator<UserRetweetedCount> it = result.iterator();
+    	Iterable<UserAndCount> result = neo4jTwitterUserDao.findMostRetweetedUsers();
+    	Iterator<UserAndCount> it = result.iterator();
     	assertEquals(true, it.hasNext());
     	assertEquals(retweetedUser.getId(), it.next().getUser().getId());
     	assertEquals(false, it.hasNext());
     }
+    
+    @Test
+    public void testfindInterstedUsers() {
+    	/*
+    	 * setup userId, mentioned-topics
+    	 * 0 - 10
+    	 * 1 - 1
+    	 * 2 - 30
+    	 * 3 - 3
+    	 * 4 - 50
+    	 * 5 - 5
+    	 */
+    	for(int i = 0; i < 6; i++) {
+    		TwitterUser tu = new TwitterUser();
+    		tu.setId(this.testTwitterUser.getId() + 1 + i);
+    		int topics = (i % 2 == 0 ? (i+1) * 10 : i);
+    		for(int j = 0; j < topics; j++) {
+    			String topic = "topic" + j;
+				neo4jTwitterUserDao.relation(tu).mentionedTopic(topic);
+    		}
+    	}
+    	InterestedUsers result = neo4jTwitterUserDao.findInterestedUsers();
+    	
+    	Iterator<UserAndCount> broadRange = result.getBroadRange().iterator();
+    	assertUserAndCount(broadRange.next(), testTwitterUser.getId() + 1 + 4, 50);
+		assertUserAndCount(broadRange.next(), testTwitterUser.getId() + 1 + 2, 30);
+		assertUserAndCount(broadRange.next(), testTwitterUser.getId() + 1 + 0, 10);
+		assertFalse(broadRange.hasNext());
+		
+		Iterator<UserAndCount> focused = result.getFocused().iterator();
+    	assertUserAndCount(focused.next(), testTwitterUser.getId() + 1 + 1, 1);
+		assertUserAndCount(focused.next(), testTwitterUser.getId() + 1 + 3, 3);
+		assertUserAndCount(focused.next(), testTwitterUser.getId() + 1 + 5, 5);
+		assertFalse(focused.hasNext());
+    }
+
+	private void assertUserAndCount(UserAndCount next, long userId, int count) {
+		assertEquals("expected differentUser and count",
+				Pair.of(userId, count),
+				Pair.of(next.getUser().getId(), next.getCount()));
+	}
 
     @Test
     public void testFollowsRelationshipMultiple() throws Exception {

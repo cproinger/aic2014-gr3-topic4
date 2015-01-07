@@ -2,17 +2,17 @@ package at.tuwien.aic2014.gr3.domain;
 /**
  * value-object for user and count. 
  */
-public class UserRetweetedCount {
+public class UserAndCount {
 	private TwitterUser user;
 	private int count;
-	public UserRetweetedCount(TwitterUser user, int count) {
+	public UserAndCount(TwitterUser user, int count) {
 		super();
 		this.user = user;
 		this.count = count;
 	}
 	@Override
 	public String toString() {
-		return "UserRetweetedCount [user=" + user + ", count=" + count
+		return "UserAndCount [user=" + user + ", count=" + count
 				+ "]";
 	}
 	
