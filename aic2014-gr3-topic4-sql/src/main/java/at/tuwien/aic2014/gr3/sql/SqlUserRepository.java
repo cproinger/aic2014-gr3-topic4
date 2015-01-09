@@ -11,10 +11,7 @@ import org.springframework.stereotype.Repository;
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
 
 @Repository
 public class SqlUserRepository implements TwitterUserRepository {
@@ -61,38 +58,45 @@ public class SqlUserRepository implements TwitterUserRepository {
     @Override
     public TwitterUser save(TwitterUser user) throws RepositoryException {
         if (exists(user.getId())) {
-            return user;
-        }
-
-        try {
-            try(Connection connection = dataSource.getConnection();
-                PreparedStatement stat = connection.prepareStatement(
-                    "INSERT into " + USER_TABLE_NAME + " values("
-                            + questionMarks(15) + ")");) {
-                //            stat.execute("insert into usersTwitter values(" + user.getId() + ",'" + user.getName() + "','" + user.getScreenName() + "','"
-                //                    + user.getLocation() + "'" + ",'" + user.getUrl() + "','" + user.getDescription() + "'," + user.getIsProtected() +
-                //                    "," + user.getIsVerified() + "," + user.getFollowersCount() + "," + user.getFriendsCount() + ","
-                //                    + user.getListedCount() + "," + user.getFavouritesCount() + ","
-                //                    + user.getCreatedAt() + ",'" + user.getLanguage() + "'," + user.getLastTimeSynched() + ")");
-                stat.setLong(1, user.getId());
-                stat.setString(2, user.getName());
-                stat.setString(3, user.getScreenName());
-                stat.setString(4, user.getLocation());
-                stat.setString(5, user.getUrl());
-                stat.setString(6, user.getDescription());
-                stat.setBoolean(7, user.getIsProtected());
-                stat.setBoolean(8, user.getIsVerified());
-                stat.setInt(9, user.getFollowersCount());
-                stat.setInt(10, user.getFriendsCount());
-                stat.setInt(11, user.getListedCount());
-                stat.setInt(12, user.getFavouritesCount());
-                stat.setDate(13,  toSqlDate(user.getCreatedAt()));
-                stat.setString(14, user.getLanguage());
-                stat.setDate(15,  toSqlDate(user.getLastTimeSynched()));
-                stat.executeUpdate();
+            String updateQuery = String.format("UPDATE %s SET (%s) = (?) WHERE %s = ?",
+                    USER_TABLE_NAME, LAST_TIME_SYNCHED_COL_NAME, ID_COL_NAME);
+            try {
+                try (Connection connection = dataSource.getConnection();
+                     PreparedStatement stat = connection.prepareStatement(updateQuery)) {
+                    stat.setTimestamp(1, toSqlTimestamp(user.getLastTimeSynched()));
+                    stat.setLong(2, user.getId());
+                    stat.executeUpdate();
+                }
+            } catch (SQLException e) {
+                throw new RepositoryException("error updating tweetUser", e);
             }
-        } catch (SQLException e) {
-            throw new RepositoryException("error saving tweetUser", e);
+        }
+        else {
+            try {
+                try (Connection connection = dataSource.getConnection();
+                     PreparedStatement stat = connection.prepareStatement(
+                             "INSERT into " + USER_TABLE_NAME + " values("
+                                     + questionMarks(15) + ")");) {
+                    stat.setLong(1, user.getId());
+                    stat.setString(2, user.getName());
+                    stat.setString(3, user.getScreenName());
+                    stat.setString(4, user.getLocation());
+                    stat.setString(5, user.getUrl());
+                    stat.setString(6, user.getDescription());
+                    stat.setBoolean(7, user.getIsProtected());
+                    stat.setBoolean(8, user.getIsVerified());
+                    stat.setInt(9, user.getFollowersCount());
+                    stat.setInt(10, user.getFriendsCount());
+                    stat.setInt(11, user.getListedCount());
+                    stat.setInt(12, user.getFavouritesCount());
+                    stat.setTimestamp(13, toSqlTimestamp(user.getCreatedAt()));
+                    stat.setString(14, user.getLanguage());
+                    stat.setTimestamp(15, toSqlTimestamp(user.getLastTimeSynched()));
+                    stat.executeUpdate();
+                }
+            } catch (SQLException e) {
+                throw new RepositoryException("error saving tweetUser", e);
+            }
         }
 
         return user;
@@ -230,9 +234,9 @@ public class SqlUserRepository implements TwitterUserRepository {
         twitterUser.setFriendsCount(rs.getInt(FRIENDS_COUNT_COL_NAME));
         twitterUser.setListedCount(rs.getInt(LISTED_COUNT_COL_NAME));
         twitterUser.setFavouritesCount(rs.getInt(FAVOURITES_COUNT_COL_NAME));
-        twitterUser.setCreatedAt(toJavaDate(rs.getDate(CREATED_AT_COL_NAME)));
+        twitterUser.setCreatedAt(toJavaDate(rs.getTimestamp(CREATED_AT_COL_NAME)));
         twitterUser.setLanguage(rs.getString(LANGUAGE_COL_NAME));
-        twitterUser.setLastTimeSynched(toJavaDate(rs.getDate(LAST_TIME_SYNCHED_COL_NAME)));
+        twitterUser.setLastTimeSynched(toJavaDate(rs.getTimestamp(LAST_TIME_SYNCHED_COL_NAME)));
 
         return twitterUser;
     }
@@ -246,12 +250,12 @@ public class SqlUserRepository implements TwitterUserRepository {
 		return sb.toString();
 	}
 
-	private java.sql.Date toSqlDate(Date createdAt) {
+	private Timestamp toSqlTimestamp(Date createdAt) {
 		if(createdAt == null) return null;
-		return new java.sql.Date(createdAt.getTime());
+		return new Timestamp(createdAt.getTime());
 	}
 
-    private Date toJavaDate (java.sql.Date date) {
+    private Date toJavaDate (Timestamp date) {
         return date == null ? null : new Date(date.getTime());
     }
 

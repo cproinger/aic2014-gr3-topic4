@@ -17,6 +17,7 @@ import twitter4j.TwitterException;
 import twitter4j.UserMentionEntity;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 @Service
 public class RelationshipMiner {
@@ -131,6 +132,10 @@ public class RelationshipMiner {
 	}
 	
 	public void crawlRelationship(TwitterUser user, int depth) throws TwitterException{
+        if (alreadySynched (user)) {
+            return;
+        }
+
 		long[] friends = getFriends(user.getId());
 		long[] follower = getFollower(user.getId());
 		long[] repliedTo = getRepliedTo(user.getId());
@@ -156,7 +161,15 @@ public class RelationshipMiner {
 		saveRelations(user, repliedTo, TwitterUserRelationships.REPLIED_TO);
 		saveRelations(user, retweeted, TwitterUserRelationships.RETWEETED);
 		saveRelations(user, mentioned, TwitterUserRelationships.MENTIONED);
-		if(depth<=1){
+
+        user.setLastTimeSynched(new Date());
+        try {
+            sqlUserRepository.save(user);
+        } catch (RepositoryException e) {
+            log.error("SQL exception reported", e);
+        }
+
+        if(depth<=1){
 			return;
 		}else{
 			for(long friendId : friends){
@@ -192,6 +205,10 @@ public class RelationshipMiner {
 			}
 		}
 	}
+
+    private boolean alreadySynched (TwitterUser user) {
+        return user.getLastTimeSynched() != null; //synchronise only once in current version
+    }
 	
 	private void printListr(long[] list){
 		for(long l : list)

@@ -14,6 +14,7 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -52,6 +53,27 @@ public class SqlUserRepositoryTest {
 
         assertEquals(testTwitterUser, persistedTwitterUser);
     }
+
+    @Test
+    public void testUpdateUser() throws Exception {
+        TwitterUser testTwitterUser = new TwitterUser();
+        testTwitterUser.setId(1);
+
+        userRepo.save(testTwitterUser);
+
+        TwitterUser persistedTwitterUser = userRepo.readById(testTwitterUser.getId());
+
+        assertEquals(testTwitterUser, persistedTwitterUser);
+
+        Date testDate = new Date();
+        testTwitterUser.setLastTimeSynched(testDate);
+
+        userRepo.save(testTwitterUser);
+
+        persistedTwitterUser = userRepo.readById(testTwitterUser.getId());
+        assertEquals (testDate, persistedTwitterUser.getLastTimeSynched());
+    }
+
 
     @Test
     public void testReadAllHugeDataSet() throws Exception {
