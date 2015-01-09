@@ -11,16 +11,7 @@
     <!-- Tweets Miner config -->
     <bean id="tweetsMiner" class="at.tuwien.aic2014.gr3.tweetsminer.TwitterStreamingStatusesMiner">
         <property name="tweetRepository" ref="tweetsRepository"/>
-        <property name="twitterStatusProcessors">
-            <list>
-                <ref bean="extractUserStatusProcessor"/>
-                <ref bean="mentionedUsersStatusProcessor"/>
-                <ref bean="mentionedHashtagsStatusProcessor"/>
-                <ref bean="repliedToStatusProcessor"/>
-                <ref bean="retweetedUserStatusProcessor"/>
-                <ref bean="topicExtractionStatusProcessor"/>
-            </list>
-        </property>
+        <property name="processor" ref="chainedProcessor"/>
     </bean>
 
     <!-- Neo4j DB config -->
@@ -65,6 +56,19 @@
     </bean>
 
     <!-- Twitter status processors -->
+    <bean id="chainedProcessor" class="at.tuwien.aic2014.gr3.tweetsminer.ChainedStatusProcessor">
+        <property name="twitterStatusProcessors">
+            <list>
+                <ref bean="extractUserStatusProcessor"/>
+                <ref bean="mentionedUsersStatusProcessor"/>
+                <ref bean="mentionedHashtagsStatusProcessor"/>
+                <ref bean="repliedToStatusProcessor"/>
+                <ref bean="retweetedUserStatusProcessor"/>
+                <ref bean="topicExtractionStatusProcessor"/>
+            </list>
+        </property>
+    </bean>
+
     <bean id="extractUserStatusProcessor" class="at.tuwien.aic2014.gr3.sql.SQLTweetProcessing">
         <constructor-arg name="tweetRepo" ref="tweetsRepository"/>
         <constructor-arg name="userRepo" ref="userRepo"/>

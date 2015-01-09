@@ -26,14 +26,10 @@ public class Neo4jTwitterUserRelationshipHandler implements  TwitterUserRelation
         log.debug("Twitter user " + this.twitterUser.getId() +
                 " -> follows -> Twitter user " + twitterUser.getId());
 
-        Transaction tx = graphDb.beginTx();
-
         Node userNode = this.getOrCreateUserNode(this.twitterUser);
         Node followedUserNode = this.getOrCreateUserNode(twitterUser);
 
         userNode.createRelationshipTo(followedUserNode, TwitterUserRelationships.FOLLOWS);
-
-        tx.success();
     }
 
     @Override
@@ -41,14 +37,10 @@ public class Neo4jTwitterUserRelationshipHandler implements  TwitterUserRelation
         log.debug("Twitter user " + this.twitterUser.getId() +
                 " -> mentioned -> Twitter user " + twitterUser.getId());
 
-        Transaction tx = graphDb.beginTx();
-
         Node userNode = this.getOrCreateUserNode(this.twitterUser);
         Node mentionedUserNode = this.getOrCreateUserNode(twitterUser);
 
         userNode.createRelationshipTo(mentionedUserNode, TwitterUserRelationships.MENTIONED);
-
-        tx.success();
     }
 
     @Override
@@ -56,14 +48,10 @@ public class Neo4jTwitterUserRelationshipHandler implements  TwitterUserRelation
         log.debug("Twitter user " + this.twitterUser.getId() +
                 " -> retweeted -> Twitter user " + twitterUser.getId());
 
-        Transaction tx = graphDb.beginTx();
-
         Node userNode = this.getOrCreateUserNode(this.twitterUser);
         Node retweetedUserNode = this.getOrCreateUserNode(twitterUser);
 
         userNode.createRelationshipTo(retweetedUserNode, TwitterUserRelationships.RETWEETED);
-
-        tx.success();
     }
 
     @Override
@@ -71,14 +59,10 @@ public class Neo4jTwitterUserRelationshipHandler implements  TwitterUserRelation
         log.debug("Twitter user " + this.twitterUser.getId() +
                 " -> is friend of -> Twitter user " + twitterUser.getId());
 
-        Transaction tx = graphDb.beginTx();
-
         Node userNode = this.getOrCreateUserNode(this.twitterUser);
         Node isFriendOfUserNode = this.getOrCreateUserNode(twitterUser);
 
         userNode.createRelationshipTo(isFriendOfUserNode, TwitterUserRelationships.IS_FRIEND_OF);
-
-        tx.success();
     }
 
     @Override
@@ -86,14 +70,10 @@ public class Neo4jTwitterUserRelationshipHandler implements  TwitterUserRelation
         log.debug("Twitter user " + this.twitterUser.getId() +
                 " -> replied to -> Twitter user " + twitterUser.getId());
 
-        Transaction tx = graphDb.beginTx();
-
         Node userNode = this.getOrCreateUserNode(this.twitterUser);
         Node repliedToUserNode = this.getOrCreateUserNode(twitterUser);
 
         userNode.createRelationshipTo(repliedToUserNode, TwitterUserRelationships.REPLIED_TO);
-
-        tx.success();
     }
 
     @Override
@@ -101,14 +81,10 @@ public class Neo4jTwitterUserRelationshipHandler implements  TwitterUserRelation
         log.debug("Twitter user " + this.twitterUser.getId() +
                 " -> mentioned -> Hashtag " + hashtag);
 
-        Transaction tx = graphDb.beginTx();
-
         Node userNode = this.getOrCreateUserNode(this.twitterUser);
         Node hashtagNode = this.getOrCreateHashtag(hashtag);
 
         userNode.createRelationshipTo(hashtagNode, TwitterUserRelationships.MENTIONED_HASHTAG);
-
-        tx.success();
     }
 
     @Override
@@ -116,14 +92,10 @@ public class Neo4jTwitterUserRelationshipHandler implements  TwitterUserRelation
         log.debug("Twitter user " + this.twitterUser.getId() +
                 " -> mentioned -> Topic " + topic);
 
-        Transaction tx = graphDb.beginTx();
-
         Node userNode = this.getOrCreateUserNode(this.twitterUser);
         Node topicNode= this.getOrCreateTopic(topic);
 
         userNode.createRelationshipTo(topicNode, TwitterUserRelationships.MENTIONED_TOPIC);
-
-        tx.success();
     }
 
     private Node getOrCreateUserNode(TwitterUser twitterUser) {

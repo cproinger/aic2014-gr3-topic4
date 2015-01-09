@@ -1,8 +1,0 @@
-* extract more infos for relationships such as 'repliedTo', 'retweeted', so that
-  the relevant topic is included as attribute
-* currently, new users, which may be found while mining user to user
-  relationships, are persisted only in neo4j with their id. For such users, the
-  metadata has to be then separately loaded in the sql db.
-* new relationship: user -> tweet source (url from where the tweet is sent)
-
-* better topic extraction: place's names

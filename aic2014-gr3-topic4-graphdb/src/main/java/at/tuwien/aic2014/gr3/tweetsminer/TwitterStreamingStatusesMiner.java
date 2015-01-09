@@ -13,7 +13,7 @@ public class TwitterStreamingStatusesMiner implements Runnable {
 
     private static final Logger log = Logger.getLogger(TwitterStreamingStatusesMiner.class);
 
-    private List<TwitterStatusProcessor> twitterStatusProcessors = new ArrayList<>();
+    private TwitterStatusProcessor processor;
     private TweetRepository tweetRepository;
 
     private boolean running = false;
@@ -22,8 +22,8 @@ public class TwitterStreamingStatusesMiner implements Runnable {
         this.tweetRepository = tweetRepository;
     }
 
-    public void setTwitterStatusProcessors(List<TwitterStatusProcessor> twitterStatusProcessors) {
-        this.twitterStatusProcessors = twitterStatusProcessors;
+    public void setProcessor(TwitterStatusProcessor processor) {
+        this.processor = processor;
     }
 
     public boolean isRunning() {
@@ -49,14 +49,10 @@ public class TwitterStreamingStatusesMiner implements Runnable {
             if (isLanguageSupported(status)) {
                 log.debug("Processing tweet " + status.getId() + "...");
 
-                for (TwitterStatusProcessor processor : twitterStatusProcessors) {
-                    try {
-                        processor.process(status);
-                    }
-                    catch (Exception e) {
-                        log.warn ("Exception thrown during tweet process step!", e);
-                    }
-                }
+                //possible performance improvements:
+                //  * worker threads for statuses
+                //  * distribution over multiple registered worker processes
+                processor.process(status);
 
                 log.debug("Tweet " + status.getId() + " successfully processed!");
             }

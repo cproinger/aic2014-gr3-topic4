@@ -66,12 +66,8 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
             return twitterUser;
         }
 
-        Transaction tx = graphDb.beginTx();
-
         Node userNode = graphDb.createNode(TWITTER_USER_NODE_LABEL);
         userNode.setProperty(TWITTER_USER_ID_PROP, twitterUser.getId());
-
-        tx.success();
 
         log.debug("Twitter user node successfully created!");
 
@@ -83,8 +79,6 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
         log.debug("Reading twitter user by ID...");
         TwitterUser twitterUser = null;
 
-        Transaction tx = graphDb.beginTx();
-
         ResourceIterator<Node> it = graphDb
                 .findNodesByLabelAndProperty(TWITTER_USER_NODE_LABEL, TWITTER_USER_ID_PROP, userId)
                 .iterator();
@@ -92,8 +86,6 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
         if (it.hasNext()) {
             twitterUser = twitterUserFromNode(it.next());
         }
-
-        tx.success();
 
         log.debug("Read twitter user: " + (twitterUser != null ? twitterUser.getId() : null));
 
