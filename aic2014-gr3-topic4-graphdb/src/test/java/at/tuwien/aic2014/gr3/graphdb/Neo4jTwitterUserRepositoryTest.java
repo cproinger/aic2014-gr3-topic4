@@ -179,6 +179,7 @@ public class Neo4jTwitterUserRepositoryTest {
 
         Node testUserNode = graphdb.createNode(Neo4jTwitterUserRepository.TWITTER_USER_NODE_LABEL);
         testUserNode.setProperty(Neo4jTwitterUserRepository.TWITTER_USER_ID_PROP, testTwitterUser.getId());
+        testUserNode.setProperty(Neo4jTwitterUserRepository.TWITTER_USER_PROCESSED_STATUSES_COUNT_PROP, 0);
 
         tx.success();
     }
@@ -191,6 +192,7 @@ public class Neo4jTwitterUserRepositoryTest {
         for (int i = 0; i < size; ++i) {
             Node testUserNode = graphdb.createNode(Neo4jTwitterUserRepository.TWITTER_USER_NODE_LABEL);
             testUserNode.setProperty(Neo4jTwitterUserRepository.TWITTER_USER_ID_PROP, i);
+            testUserNode.setProperty(Neo4jTwitterUserRepository.TWITTER_USER_PROCESSED_STATUSES_COUNT_PROP, 0);
         }
 
         tx.success();
@@ -449,7 +451,7 @@ public class Neo4jTwitterUserRepositoryTest {
 
     @Test
     public void testReadAllHugeDataSet() throws Exception {
-        int size = 30000;  //tested with 1000000.
+        int size = 3000;  //tested with 1000000.
         setUpHugeDataSet(size);
 
         RepositoryIterator<TwitterUser> it = neo4jTwitterUserDao.readAll();

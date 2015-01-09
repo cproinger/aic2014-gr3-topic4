@@ -22,6 +22,7 @@ public class TwitterUser {
     private Date lastTimeSynched;
     private boolean isProtected;
     private boolean isVerified;
+    private int processedStatusesCount;
 
     @Override
     public int hashCode() {
@@ -177,5 +178,13 @@ public class TwitterUser {
 
     public void setIsVerified(boolean isVerified) {
         this.isVerified = isVerified;
+    }
+
+    public int getProcessedStatusesCount() {
+        return processedStatusesCount;
+    }
+
+    public void setProcessedStatusesCount(int processedStatusesCount) {
+        this.processedStatusesCount = processedStatusesCount;
     }
 }

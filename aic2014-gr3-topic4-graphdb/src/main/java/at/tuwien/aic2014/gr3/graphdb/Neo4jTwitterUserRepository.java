@@ -11,10 +11,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.apache.log4j.Logger;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.ResourceIterator;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.*;
 import org.neo4j.rest.graphdb.RestGraphDatabase;
 import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
 import org.neo4j.rest.graphdb.util.ConvertedResult;
@@ -40,6 +37,7 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
 
     private final static Logger log = Logger.getLogger(Neo4jTwitterUserRepository.class);
     public final static String TWITTER_USER_ID_PROP = "twitterUserId";
+    public final static String TWITTER_USER_PROCESSED_STATUSES_COUNT_PROP = "processedStatusesCount";
 
     private RestGraphDatabase graphDb;
     private RestCypherQueryEngine engine;
@@ -61,15 +59,24 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
         log.debug("Creating twitter user node...");
 
         assert (twitterUser.getId() > 0);
-        if (this.readById(twitterUser.getId()) != null) {
-            log.debug ("Twitter User " + twitterUser.getId() + " already exists! Nothing to be done");
-            return twitterUser;
+
+         ResourceIterator<Node> it = graphDb
+                .findNodesByLabelAndProperty(TWITTER_USER_NODE_LABEL, TWITTER_USER_ID_PROP, twitterUser.getId())
+                .iterator();
+
+        Node userNode;
+        if (it.hasNext()) {
+            userNode = it.next();
+        }
+        else {
+            userNode = graphDb.createNode(TWITTER_USER_NODE_LABEL);
+            userNode.setProperty(TWITTER_USER_ID_PROP, twitterUser.getId());
         }
 
-        Node userNode = graphDb.createNode(TWITTER_USER_NODE_LABEL);
-        userNode.setProperty(TWITTER_USER_ID_PROP, twitterUser.getId());
+        userNode.setProperty(TWITTER_USER_PROCESSED_STATUSES_COUNT_PROP,
+                twitterUser.getProcessedStatusesCount());
 
-        log.debug("Twitter user node successfully created!");
+        log.debug("Twitter user node successfully saved!");
 
         return twitterUser;
     }
@@ -131,9 +138,14 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
 
         //TODO use injected component to fetch sql data as well. 
         
-        //hack to cast Integer to Long, as it seems neo4j uses Integer for
-        //id persistence.
         twitterUser.setId(Long.parseLong(String.valueOf(twitterUserNode.getProperty(TWITTER_USER_ID_PROP))));
+        try {
+            twitterUser.setProcessedStatusesCount(Integer.parseInt(
+                    String.valueOf(twitterUserNode.getProperty(TWITTER_USER_PROCESSED_STATUSES_COUNT_PROP))));
+        }
+        catch (NotFoundException e) {
+            twitterUser.setProcessedStatusesCount(0);
+        }
 
         return twitterUser;
     }

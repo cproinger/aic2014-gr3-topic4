@@ -111,6 +111,7 @@ public class Neo4jTwitterUserRelationshipHandler implements  TwitterUserRelation
 
         Node userNode = graphDb.createNode(Neo4jTwitterUserRepository.TWITTER_USER_NODE_LABEL);
         userNode.setProperty(Neo4jTwitterUserRepository.TWITTER_USER_ID_PROP, twitterUser.getId());
+        userNode.setProperty(Neo4jTwitterUserRepository.TWITTER_USER_PROCESSED_STATUSES_COUNT_PROP, 0);
 
         log.debug("Twitter user node " + twitterUser.getId() + " successfully created!");
 
