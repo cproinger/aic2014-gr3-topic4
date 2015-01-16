@@ -53,7 +53,7 @@ public class SQLTweetProcessing implements TwitterStatusProcessor {
 	public void processAll() {
 		for(Iterator<Status> it = tweetRepo.iterateTweetsWithUnprocessedUser(); it.hasNext(); ) {
 			Status stat = it.next();
-			System.out.println("process tweet " +stat.getId());
+			//System.out.println("process tweet " +stat.getId());
 			process(stat);
 			it.remove();
 		}
