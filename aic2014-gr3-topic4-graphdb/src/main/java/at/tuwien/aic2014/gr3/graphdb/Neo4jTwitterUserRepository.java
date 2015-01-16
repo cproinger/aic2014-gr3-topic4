@@ -11,6 +11,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.log4j.Logger;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -57,6 +59,16 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
 
     public void setTwitterUserRelationshipHandlerFactory(TwitterUserRelationshipHandlerFactory twitterUserRelationshipHandlerFactory) {
         this.twitterUserRelationshipHandlerFactory = twitterUserRelationshipHandlerFactory;
+    }
+    
+    @PostConstruct
+    private void doSetupStuff() {
+    	try {
+			engine.query("CREATE INDEX ON :TwitterUser(twitterUserId)",
+					new HashMap<String, Object>());
+    	} catch (Exception e) {
+    		log.error(e.getMessage());
+    	}
     }
 
     @Override
@@ -205,7 +217,7 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
 			@Override
 			public QueryResult<Map<String, Object>> call() throws Exception {
 				String statement = "MATCH m = (a)-[:MENTIONED_TOPIC]->(b) "
-						+ "WITH a as usr, b as topic "
+						+ "WITH a as usr, b.topic as topic "
 						+ "WITH usr, count(distinct topic) as cnt "
 						+ "ORDER BY cnt DESC "
 						+ "RETURN usr, cnt "
@@ -219,7 +231,7 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
 			@Override
 			public QueryResult<Map<String, Object>> call() throws Exception {
 				String statement = "MATCH m = (a)-[:MENTIONED_TOPIC]->(b) "
-						+ "WITH a as usr, b as topic "
+						+ "WITH a as usr, b.topic as topic "
 						+ "WITH usr, count(distinct topic) as cnt "
 						+ "ORDER BY cnt ASC "
 						+ "RETURN usr, cnt "
@@ -243,6 +255,7 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
 		}
     }
     
+    @Override
     public List<UserTopic> findExistingInterestsForUser(long userId) {
     	String statement = "MATCH (a:TwitterUser)-[:MENTIONED_TOPIC]->(b:topic) "
     			+ "WHERE a.twitterUserId = {userId} "
@@ -256,6 +269,7 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
 		return userTopics;
     }
     
+    @Override
     public List<UserTopic> findPotentialInterestsForUser(long userId) {
     	//TODO FIXME. 
     	return findExistingInterestsForUser(userId);

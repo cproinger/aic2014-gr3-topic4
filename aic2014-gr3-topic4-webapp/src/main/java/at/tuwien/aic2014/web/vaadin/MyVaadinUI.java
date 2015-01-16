@@ -10,11 +10,15 @@ import org.dussan.vaadin.dcharts.options.Axes;
 import org.dussan.vaadin.dcharts.options.Highlighter;
 import org.dussan.vaadin.dcharts.options.Options;
 import org.dussan.vaadin.dcharts.options.SeriesDefaults;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.vaadin.spring.VaadinUI;
 
+import at.tuwien.aic2014.gr3.shared.AnalysisRepository;
 import at.tuwien.aic2014.gr3.shared.TweetRepository;
+import at.tuwien.aic2014.gr3.suggest.AdSuggestionService;
 
 import com.vaadin.annotations.Title;
 import com.vaadin.server.VaadinRequest;
@@ -32,9 +36,17 @@ import com.vaadin.ui.VerticalLayout;
 public class MyVaadinUI extends UI {
 
 	private static final long serialVersionUID = 1L;
+	
+	private final static Logger LOG = LoggerFactory.getLogger(MyVaadinUI.class);
 
 	@Autowired
 	private transient TweetRepository tweetRepo;
+	
+	@Autowired
+	private transient AnalysisRepository analysisRepo;
+	
+	@Autowired
+	private transient AdSuggestionService suggestService;
 	
 	private Label hello = new Label("Hello vaadin world!");
 	private  Panel content = new Panel(hello);
@@ -43,7 +55,21 @@ public class MyVaadinUI extends UI {
 	
 	@Override
 	protected void init(VaadinRequest request) {
-		System.out.println("tweetRepo: " + tweetRepo);
+		try {
+			LOG.info("tweetRepo: " + tweetRepo.countTweets());
+		} catch(Exception e) {
+			LOG.error("", e);
+		}
+		try {
+			LOG.info("analysisRepo: " + analysisRepo.findExistingInterestsForUser(1));
+		} catch(Exception e) {
+			LOG.error("", e);
+		}
+		try {
+			LOG.info("suggestService: " + suggestService.suggestAdsForExistingUserInterests(1));
+		} catch(Exception e) {
+			LOG.error("", e);
+		}
 		Component c = null;
 		
 		HorizontalLayout comp = new HorizontalLayout();
