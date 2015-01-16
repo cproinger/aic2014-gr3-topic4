@@ -3,6 +3,7 @@ package at.tuwien.aic2014.gr3.graphdb;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -11,7 +12,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.apache.log4j.Logger;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.NotFoundException;
+import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.rest.graphdb.RestGraphDatabase;
 import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
 import org.neo4j.rest.graphdb.util.ConvertedResult;
@@ -22,6 +26,7 @@ import org.springframework.stereotype.Repository;
 import at.tuwien.aic2014.gr3.domain.InterestedUsers;
 import at.tuwien.aic2014.gr3.domain.TwitterUser;
 import at.tuwien.aic2014.gr3.domain.UserAndCount;
+import at.tuwien.aic2014.gr3.domain.UserTopic;
 import at.tuwien.aic2014.gr3.shared.AnalysisRepository;
 import at.tuwien.aic2014.gr3.shared.RepositoryException;
 import at.tuwien.aic2014.gr3.shared.RepositoryIterator;
@@ -236,5 +241,23 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
 		} catch (InterruptedException | ExecutionException e) {
 			throw new RuntimeException("error in query", e);
 		}
+    }
+    
+    public List<UserTopic> findExistingInterestsForUser(long userId) {
+    	String statement = "MATCH (a:TwitterUser)-[:MENTIONED_TOPIC]->(b:topic) "
+    			+ "WHERE a.twitterUserId = {userId} "
+    			+ "WITH b.topic as to, count(b) as cnt "
+    			+ "RETURN to, cnt ORDER BY cnt DESC";
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("userId", userId);
+		QueryResult<Map<String, Object>> result = engine.query(statement, params);
+		ArrayList<UserTopic> userTopics = new ArrayList<UserTopic>();
+		result.forEach(r -> userTopics.add(new UserTopic(r)));
+		return userTopics;
+    }
+    
+    public List<UserTopic> findPotentialInterestsForUser(long userId) {
+    	//TODO FIXME. 
+    	return findExistingInterestsForUser(userId);
     }
 }
