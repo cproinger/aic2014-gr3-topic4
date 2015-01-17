@@ -66,6 +66,8 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
     	try {
 			engine.query("CREATE INDEX ON :TwitterUser(twitterUserId)",
 					new HashMap<String, Object>());
+			engine.query("CREATE INDEX ON :topic(topic)",
+					new HashMap<String, Object>());
     	} catch (Exception e) {
     		log.error(e.getMessage());
     	}
@@ -155,7 +157,8 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
 
         //TODO use injected component to fetch sql data as well. 
         
-        twitterUser.setId(Long.parseLong(String.valueOf(twitterUserNode.getProperty(TWITTER_USER_ID_PROP))));
+        Object property = twitterUserNode.getProperty(TWITTER_USER_ID_PROP);
+		twitterUser.setId(Long.parseLong(String.valueOf(property)));
         try {
             twitterUser.setProcessedStatusesCount(Integer.parseInt(
                     String.valueOf(twitterUserNode.getProperty(TWITTER_USER_PROCESSED_STATUSES_COUNT_PROP))));
@@ -169,6 +172,12 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
     
     @Override
     public Iterable<UserAndCount> findMostRetweetedUsers() {
+    	/*das is zumindest schon mal doppelt so schnell
+    	 * MATCH (a:TwitterUser)-[:`RETWEETED`]->(b:TwitterUser)
+WITH b.twitterUserId as usr, count(*) as c 
+order by c DESC 
+RETURN usr,c LIMIT 5
+    	 */
     	String statement = "MATCH (a)-[:`RETWEETED`]->(b) "
     			+ "WITH b as usr, count(*) as c "
     			+ "order by c DESC "
@@ -232,7 +241,7 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
 			public QueryResult<Map<String, Object>> call() throws Exception {
 				String statement = "MATCH m = (a)-[:MENTIONED_TOPIC]->(b) "
 						+ "WITH a as usr, b.topic as topic "
-						+ "WITH usr, count(distinct topic) as cnt "
+						+ "WITH usr, count(topic) as cnt "
 						+ "ORDER BY cnt ASC "
 						+ "RETURN usr, cnt "
 						+ "LIMIT 3";
