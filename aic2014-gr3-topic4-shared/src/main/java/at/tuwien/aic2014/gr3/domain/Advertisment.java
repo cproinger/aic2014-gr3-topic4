@@ -7,20 +7,20 @@ import java.util.List;
  */
 public class Advertisment {
 
-    String url;
+    String filepath;
     List<String> tags;
 
-    public Advertisment(String url, List<String> tags){
-        this.url = url;
+    public Advertisment(String filepath, List<String> tags){
+        this.filepath = filepath;
         this.tags = tags;
     }
 
     public String getUrl() {
-        return url;
+        return filepath;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setUrl(String filepath) {
+        this.filepath = filepath;
     }
 
     public List<String> getTags() {
@@ -45,7 +45,7 @@ public class Advertisment {
             tagString += tags.get(i) + ",";
         }
         tagString += tags.get(tags.size()-1);
-        return "Advertisment [URL=" + this.url + ", tags="
+        return "Advertisment [URL=" + this.filepath + ", tags="
                 + tagString + "]";
     }
 }

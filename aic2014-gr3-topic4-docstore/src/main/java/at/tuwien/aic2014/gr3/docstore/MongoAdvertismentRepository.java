@@ -17,21 +17,33 @@ public class MongoAdvertismentRepository implements AdvertismentRepository {
 
     @Autowired
     private DB db;
+    private Advertisment car;
+    private Advertisment youtube;
+
 
     @Override
     public Collection<Advertisment> findByInterests(List<UserTopic> interests,
                                                     int max) throws UnsupportedOperationException {
         ArrayList<Advertisment> list = new ArrayList<Advertisment>();
-        Advertisment car = new Advertisment("", Arrays.asList(new String[]{"car", "auto", "bmw", "audi", "vehicle"}));
+        initAdvertisments();
+
 
         while (list.size() < max) {
-            if (interests.contains("car")) {
-                list.add(car);
+            for (int i = 0; car.getTags().size() < i; i++) {
+                if (interests.contains(car.getSingleTag(i))){
+                    list.add(car);
+                }
             }
         }
         //TODO christoph
         //throw new UnsupportedOperationException("not yet implemented");
         return list;
+    }
+
+    private void initAdvertisments() {
+        car = new Advertisment("./ressource/CarBanner.jpg", Arrays.asList(new String[]{"car", "auto", "bmw", "audi", "vehicle"}));
+        youtube = new Advertisment("", Arrays.asList(new String[]{"video", "videos", "youtube"}));
+
     }
 
 }
