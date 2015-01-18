@@ -16,8 +16,19 @@
 
 	<dependencies>
 		<dependency>
+			<!-- TODO brauch ma glaub ich nicht direkt -->
 			<groupId>aic2014-gr3-topic4</groupId>
 			<artifactId>aic2014-gr3-topic4-docstore</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>aic2014-gr3-topic4</groupId>
+			<artifactId>aic2014-gr3-topic4-suggest</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>aic2014-gr3-topic4</groupId>
+			<artifactId>aic2014-gr3-topic4-graphdb</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 

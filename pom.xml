@@ -12,6 +12,7 @@
 		<module>aic2014-gr3-topic4-graphdb</module>
 		<module>aic2014-gr3-topic4-sql</module>
 		<module>aic2014-gr3-topic4-webapp</module>
+		<module>aic2014-gr3-topic4-suggest</module>
 	</modules>
 	<properties>
 		<spring.version>4.1.1.RELEASE</spring.version>

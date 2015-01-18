@@ -3,10 +3,11 @@ package at.tuwien.aic2014.gr3.twitter;
 import java.io.IOException;
 import java.util.Iterator;
 
+import javax.annotation.PostConstruct;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.stereotype.Service;
 
 import twitter4j.Paging;
@@ -45,53 +46,13 @@ public class TimelineApiMiner {
 	private StreamApiMiner streamMiner;
 
 	private Twitter twitter;
-
-	public static void main(String[] args) throws TwitterException {
-		System.setProperty("twitter4j.jsonStoreEnabled", "true");
-		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(
-				TwitterConfig.class);
-		TimelineApiMiner m = ctx.getBean(TimelineApiMiner.class);
-		m.start();
-		m.shutdown();
-		ctx.close();
-	}
-
-	private void shutdown() {
-
-	}
-
-	private void start() throws TwitterException {
-		//TODO extract into separate class. 
+	
+	@PostConstruct
+	private void setupTwitter() {
 		twitter = twitterFactory.getInstance();
-		//mine tweets until there are min 100.000 in the db. 
-		while(tweetRepository.countTweets() < 100000L) {
-			int persisted = mineUserTimelines();
-			if(persisted == 0) {
-				try {
-					streamMiner.start();
-					try {
-						Thread.sleep(60 * 1000);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-					streamMiner.shutdown();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			} else {
-				try {
-					LOG.info("waiting for 1 minute(s)");
-					Thread.sleep(1 * 60_000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
 	}
 
-	private int mineUserTimelines() throws TwitterException {
+	int mineUserTimelines() throws TwitterException {
 		// ResponseList<User> usrs = twitter.lookupUsers(new long[] {123L});
 		// for(User usr : usrs) {
 		// //no tweets of user accessible

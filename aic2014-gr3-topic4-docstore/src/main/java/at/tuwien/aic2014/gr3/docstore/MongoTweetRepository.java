@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.Iterator;
 
 import com.mongodb.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,7 +78,7 @@ public class MongoTweetRepository implements TweetRepository {
 	
 	@Override
 	public long countTweets() {
-		return getCollection().count();
+		return getStreamingTweetsCollection().count();
 	}
 
     public void setDb(DB db) {
@@ -94,11 +95,12 @@ public class MongoTweetRepository implements TweetRepository {
 		// handle dates correctly
 		// but it's a start
 		DBObject obj = (DBObject) JSON.parse(json);
+		DBObject retweetedStatus = (DBObject) obj.get("retweeted_status");
 		Object tweetId = obj.get(ID);
 		//upsert tweet. 
-		getCollection().update(new BasicDBObject(ID, tweetId), obj, true, false);
+		getStreamingTweetsCollection().update(new BasicDBObject(ID, tweetId), obj, true, false);
 		DBObject tweetUser = (DBObject) obj.get(USER);
-		tweetUser.put("original", 0);
+		tweetUser.put("original", retweetedStatus == null);
 		tweetUser.put(TWEET_ID, tweetId);
 		//upsert user-tweet: aber nur wenn sich der status_count nicht geändert hat
 		//sonst verlieren wir bei der nächsten iteration über die status-ranges
@@ -107,23 +109,23 @@ public class MongoTweetRepository implements TweetRepository {
 												.append(TWEET_ID, tweetId)
 												.append("statuses_count", tweetUser.get("statuses_count")),
 												tweetUser, true, false);
-		DBObject retweetedStatus = (DBObject) obj.get("retweeted_status");
 		if(retweetedStatus != null) {
 			//upsert retweeted-user-tweet. 
 			DBObject retweetedUser = (DBObject) retweetedStatus.get(USER);
 			retweetedUser.put("original", 1);
-			retweetedUser.put(TWEET_ID, retweetedStatus.get(ID));
+			Object retweetedId = retweetedStatus.get(ID);
+			retweetedUser.put(TWEET_ID, retweetedId);
 			//upsert user-tweet: aber nur wenn sich der status_count nicht geändert hat
 			//sonst verlieren wir bei der nächsten iteration über die status-ranges
 			//tweets
 			getUserTweetsCollection().update(new BasicDBObject(ID, retweetedUser.get(ID))
-											.append(TWEET_ID, tweetId)
+											.append(TWEET_ID, retweetedId)
 											.append("statuses_count", tweetUser.get("statuses_count")),
 											retweetedUser, true, false);
 		}
 	}
 
-	private DBCollection getCollection() {
+	private DBCollection getStreamingTweetsCollection() {
 		DBCollection streamingTweets = db.getCollection("streamingTweets");
 		if(!streamingTweetsIndexesEnsured) {
 			streamingTweets.createIndex(new BasicDBObject(ID, 1));
@@ -135,7 +137,7 @@ public class MongoTweetRepository implements TweetRepository {
 
 	@Override
 	public Iterator<Status> iterateTweetsWithUnprocessedUser() {
-		final DBCursor tweetsWithUnprocressedUser = getCollection().find(
+		final DBCursor tweetsWithUnprocressedUser = getStreamingTweetsCollection().find(
 				new BasicDBObject(AIC_PROCESSED_USER, new BasicDBObject("$exists",
 						false)))
                 .addOption(Bytes.QUERYOPTION_NOTIMEOUT);

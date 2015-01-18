@@ -2,14 +2,17 @@ package at.tuwien.aic2014.web.vaadin;
 
 import java.util.List;
 
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.vaadin.spring.VaadinUI;
+
 
 import at.tuwien.aic2014.gr3.domain.TwitterUser;
 import at.tuwien.aic2014.gr3.shared.TweetRepository;
 import at.tuwien.aic2014.web.controller.GUIController;
 import at.tuwien.aic2014.web.controller.TestDataController;
+
 
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
@@ -38,6 +41,8 @@ public class MyVaadinUI extends UI {
 	
 	GUIController controller = new TestDataController();
 	
+//	private final static Logger LOG = LoggerFactory.getLogger(MyVaadinUI.class);
+
 	private static final String UID ="UID";
 	private static final String NAME = "Name";
 	private static final String SCREENNAME = "Screenname";
@@ -61,7 +66,6 @@ public class MyVaadinUI extends UI {
 	@Override
 	protected void init(VaadinRequest request) {
 		TabSheet hl = new TabSheet();
-
 
 	// Have it take all space available in the layout.
 	hl.setSizeFull();

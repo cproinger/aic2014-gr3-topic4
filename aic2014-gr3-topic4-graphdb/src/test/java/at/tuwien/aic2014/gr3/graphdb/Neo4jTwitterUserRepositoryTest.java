@@ -3,6 +3,7 @@ package at.tuwien.aic2014.gr3.graphdb;
 import at.tuwien.aic2014.gr3.domain.InterestedUsers;
 import at.tuwien.aic2014.gr3.domain.TwitterUser;
 import at.tuwien.aic2014.gr3.domain.UserAndCount;
+import at.tuwien.aic2014.gr3.domain.UserTopic;
 import at.tuwien.aic2014.gr3.shared.RepositoryIterator;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -271,6 +272,24 @@ public class Neo4jTwitterUserRepositoryTest {
 		assertUserAndCount(focused.next(), testTwitterUser.getId() + 1 + 3, 3);
 		assertUserAndCount(focused.next(), testTwitterUser.getId() + 1 + 5, 5);
 		assertFalse(focused.hasNext());
+    }
+    
+    @Test
+    public void testFindExistingInterestsForUser() {
+    	for(int i = 1; i <= 5; i++) {
+    		for(int j = 0; j < i; j++) {
+				String topic = "t" + j;
+				neo4jTwitterUserDao.relation(testTwitterUser).mentionedTopic(topic);
+    		}
+    	}
+    	List<UserTopic> result = neo4jTwitterUserDao.findExistingInterestsForUser(testTwitterUser.getId());
+    	
+    	assertEquals(5, result.size());
+    	assertEquals("[UserTopic [topic=t0, cnt=5], "
+    			+ "UserTopic [topic=t1, cnt=4], "
+    			+ "UserTopic [topic=t2, cnt=3], "
+    			+ "UserTopic [topic=t3, cnt=2], "
+    			+ "UserTopic [topic=t4, cnt=1]]", result.toString());
     }
 
 	private void assertUserAndCount(UserAndCount next, long userId, int count) {

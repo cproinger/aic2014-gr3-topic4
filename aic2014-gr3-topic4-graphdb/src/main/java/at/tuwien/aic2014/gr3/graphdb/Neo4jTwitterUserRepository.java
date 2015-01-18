@@ -3,6 +3,7 @@ package at.tuwien.aic2014.gr3.graphdb;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -10,8 +11,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.log4j.Logger;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.NotFoundException;
+import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.rest.graphdb.RestGraphDatabase;
 import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
 import org.neo4j.rest.graphdb.util.ConvertedResult;
@@ -22,6 +28,7 @@ import org.springframework.stereotype.Repository;
 import at.tuwien.aic2014.gr3.domain.InterestedUsers;
 import at.tuwien.aic2014.gr3.domain.TwitterUser;
 import at.tuwien.aic2014.gr3.domain.UserAndCount;
+import at.tuwien.aic2014.gr3.domain.UserTopic;
 import at.tuwien.aic2014.gr3.shared.AnalysisRepository;
 import at.tuwien.aic2014.gr3.shared.RepositoryException;
 import at.tuwien.aic2014.gr3.shared.RepositoryIterator;
@@ -52,6 +59,18 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
 
     public void setTwitterUserRelationshipHandlerFactory(TwitterUserRelationshipHandlerFactory twitterUserRelationshipHandlerFactory) {
         this.twitterUserRelationshipHandlerFactory = twitterUserRelationshipHandlerFactory;
+    }
+    
+    @PostConstruct
+    private void doSetupStuff() {
+    	try {
+			engine.query("CREATE INDEX ON :TwitterUser(twitterUserId)",
+					new HashMap<String, Object>());
+			engine.query("CREATE INDEX ON :topic(topic)",
+					new HashMap<String, Object>());
+    	} catch (Exception e) {
+    		log.error(e.getMessage());
+    	}
     }
 
     @Override
@@ -138,7 +157,8 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
 
         //TODO use injected component to fetch sql data as well. 
         
-        twitterUser.setId(Long.parseLong(String.valueOf(twitterUserNode.getProperty(TWITTER_USER_ID_PROP))));
+        Object property = twitterUserNode.getProperty(TWITTER_USER_ID_PROP);
+		twitterUser.setId(Long.parseLong(String.valueOf(property)));
         try {
             twitterUser.setProcessedStatusesCount(Integer.parseInt(
                     String.valueOf(twitterUserNode.getProperty(TWITTER_USER_PROCESSED_STATUSES_COUNT_PROP))));
@@ -152,6 +172,12 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
     
     @Override
     public Iterable<UserAndCount> findMostRetweetedUsers() {
+    	/*das is zumindest schon mal doppelt so schnell
+    	 * MATCH (a:TwitterUser)-[:`RETWEETED`]->(b:TwitterUser)
+WITH b.twitterUserId as usr, count(*) as c 
+order by c DESC 
+RETURN usr,c LIMIT 5
+    	 */
     	String statement = "MATCH (a)-[:`RETWEETED`]->(b) "
     			+ "WITH b as usr, count(*) as c "
     			+ "order by c DESC "
@@ -200,7 +226,7 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
 			@Override
 			public QueryResult<Map<String, Object>> call() throws Exception {
 				String statement = "MATCH m = (a)-[:MENTIONED_TOPIC]->(b) "
-						+ "WITH a as usr, b as topic "
+						+ "WITH a as usr, b.topic as topic "
 						+ "WITH usr, count(distinct topic) as cnt "
 						+ "ORDER BY cnt DESC "
 						+ "RETURN usr, cnt "
@@ -214,8 +240,8 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
 			@Override
 			public QueryResult<Map<String, Object>> call() throws Exception {
 				String statement = "MATCH m = (a)-[:MENTIONED_TOPIC]->(b) "
-						+ "WITH a as usr, b as topic "
-						+ "WITH usr, count(distinct topic) as cnt "
+						+ "WITH a as usr, b.topic as topic "
+						+ "WITH usr, count(topic) as cnt "
 						+ "ORDER BY cnt ASC "
 						+ "RETURN usr, cnt "
 						+ "LIMIT 3";
@@ -236,5 +262,25 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
 		} catch (InterruptedException | ExecutionException e) {
 			throw new RuntimeException("error in query", e);
 		}
+    }
+    
+    @Override
+    public List<UserTopic> findExistingInterestsForUser(long userId) {
+    	String statement = "MATCH (a:TwitterUser)-[:MENTIONED_TOPIC]->(b:topic) "
+    			+ "WHERE a.twitterUserId = {userId} "
+    			+ "WITH b.topic as to, count(b) as cnt "
+    			+ "RETURN to, cnt ORDER BY cnt DESC";
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("userId", userId);
+		QueryResult<Map<String, Object>> result = engine.query(statement, params);
+		ArrayList<UserTopic> userTopics = new ArrayList<UserTopic>();
+		result.forEach(r -> userTopics.add(new UserTopic(r)));
+		return userTopics;
+    }
+    
+    @Override
+    public List<UserTopic> findPotentialInterestsForUser(long userId) {
+    	//TODO FIXME. 
+    	return findExistingInterestsForUser(userId);
     }
 }
