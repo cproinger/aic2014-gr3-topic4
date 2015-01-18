@@ -21,38 +21,12 @@ public class Neo4jTwitterUserRelationshipHandler implements  TwitterUserRelation
 
     private final static Logger log = Logger.getLogger(Neo4jTwitterUserRelationshipHandler.class);
 
-    private RestGraphDatabase graphDb;
     private RestCypherQueryEngine engine;
     private TwitterUser twitterUser;
 
     public Neo4jTwitterUserRelationshipHandler(RestGraphDatabase graphDb, TwitterUser twitterUser) {
-        this.graphDb = graphDb;
         this.twitterUser = twitterUser;
         engine = new RestCypherQueryEngine(graphDb.getRestAPI());
-    }
-
-    @Override
-    public void follows(TwitterUser twitterUser) {
-        log.debug("Twitter user " + this.twitterUser.getId() +
-                " -> follows -> Twitter user " + twitterUser.getId());
-
-        this.createUniqueUserNode(this.twitterUser);
-        this.createUniqueUserNode(twitterUser);
-
-        String query = String.format(
-                "MATCH (u1:%s {%s:%d}), (u2:%s {%s:%d}) " +
-                        "MERGE (u1)-[r:%s]->(u2) " +
-                        "RETURN r",
-                Neo4jTwitterUserRepository.TWITTER_USER_NODE_LABEL.name(),
-                Neo4jTwitterUserRepository.TWITTER_USER_ID_PROP,
-                this.twitterUser.getId(),
-                Neo4jTwitterUserRepository.TWITTER_USER_NODE_LABEL.name(),
-                Neo4jTwitterUserRepository.TWITTER_USER_ID_PROP,
-                twitterUser.getId(),
-                TwitterUserRelationships.FOLLOWS.name()
-        );
-
-        this.engine.query(query, null);
     }
 
     @Override
@@ -119,7 +93,7 @@ public class Neo4jTwitterUserRelationshipHandler implements  TwitterUserRelation
 
         String query = String.format(
                 "MATCH (u1:%s {%s:%d}), (u2:%s {%s:%d}) " +
-                        "MERGE (u1)-[r:%s]-(u2) " +
+                        "MERGE (u1)-[r:%s]->(u2) " +
                         "RETURN r",
                 Neo4jTwitterUserRepository.TWITTER_USER_NODE_LABEL.name(),
                 Neo4jTwitterUserRepository.TWITTER_USER_ID_PROP,

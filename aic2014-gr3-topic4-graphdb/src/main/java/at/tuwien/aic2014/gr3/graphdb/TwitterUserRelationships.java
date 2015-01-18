@@ -3,7 +3,6 @@ package at.tuwien.aic2014.gr3.graphdb;
 import org.neo4j.graphdb.RelationshipType;
 
 public enum TwitterUserRelationships implements RelationshipType {
-    FOLLOWS,
     MENTIONED,
     RETWEETED,
     IS_FRIEND_OF,

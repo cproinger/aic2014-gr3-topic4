@@ -24,6 +24,7 @@ public class TwitterUserUtils {
         twitterUser.setLastTimeSynched(null);
         twitterUser.setIsProtected(fromUser.isProtected());
         twitterUser.setIsVerified(fromUser.isVerified());
+        twitterUser.setProcessedStatusesCount(0);
         return twitterUser;
     }
 }

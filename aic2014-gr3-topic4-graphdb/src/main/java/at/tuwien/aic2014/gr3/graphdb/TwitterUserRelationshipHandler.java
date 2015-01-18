@@ -4,7 +4,6 @@ import at.tuwien.aic2014.gr3.domain.TwitterUser;
 
 public interface TwitterUserRelationshipHandler {
 
-    public void follows(TwitterUser twitterUser);
     public void mentioned(TwitterUser twitterUser);
     public void retweeted(TwitterUser twitterUser);
     public void isFriendOf(TwitterUser twitterUser);

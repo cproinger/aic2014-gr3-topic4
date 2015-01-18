@@ -20,7 +20,18 @@
     </bean>
 
     <!-- Mongodb DB config -->
-    <bean id="docStoreConfig" class="at.tuwien.aic2014.gr3.docstore.DocStoreConfig"/>
+    <bean id="tweetsRepository" class="at.tuwien.aic2014.gr3.docstore.MongoTweetRepository">
+        <property name="db" ref="mongodb"/>
+    </bean>
+
+    <bean id="mongoClient" class="com.mongodb.MongoClient" destroy-method="close">
+        <constructor-arg name="host" value="${tweetsMiner.mongodb.host}"/>
+        <constructor-arg name="port" value="${tweetsMiner.mongodb.port}"/>
+    </bean>
+
+    <bean id="mongodb" factory-bean="mongoClient" factory-method="getDB">
+        <constructor-arg type="java.lang.String" value="${tweetsMiner.mongodb.db}"/>
+    </bean>
 
     <!-- Postgres DB config -->
     <bean id="sqlDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">

@@ -329,17 +329,6 @@ public class Neo4jTwitterUserRepositoryTest {
 	}
 
     @Test
-    public void testFollowsRelationshipMultiple() throws Exception {
-        TwitterUser newUser = new TwitterUser();
-        newUser.setId(testTwitterUser.getId() + 1);
-
-        neo4jTwitterUserDao.relation(testTwitterUser).follows(newUser);
-        neo4jTwitterUserDao.relation(testTwitterUser).follows(newUser);
-
-        assertUserUniqueRelationship(testTwitterUser, TwitterUserRelationships.FOLLOWS.name(), newUser);
-    }
-
-    @Test
     public void testIsFriendOfRelationshipMultiple() throws Exception {
         TwitterUser newUser = new TwitterUser();
         newUser.setId(testTwitterUser.getId() + 1);
