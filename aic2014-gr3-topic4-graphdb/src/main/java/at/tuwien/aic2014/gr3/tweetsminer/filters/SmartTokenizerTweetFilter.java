@@ -15,6 +15,8 @@ public class SmartTokenizerTweetFilter implements TweetFilter<String[],String> {
 
     private static final String TOKEN_STRIP_REG_EXP = "^\\W+|\\W+$";
 
+    private static final String VALID_TOPIC_REG_EXP = "^[a-zA-Z0-9]+$";
+
     private Tokenizer tokenizer;
     private NameFinderME nameFinder;
     private Set<String> stopwords;
@@ -52,7 +54,7 @@ public class SmartTokenizerTweetFilter implements TweetFilter<String[],String> {
             }
             else {
                 String strippedToken = strip(tokens[currentTokenIndex]);
-                if (strippedToken.length() > 0 && !stopwords.contains(strippedToken)) {
+                if (isValidTopic (strippedToken)) {
                     smartTokens.add(strippedToken);
                     currentTokenIndex++;
                 }
@@ -67,6 +69,12 @@ public class SmartTokenizerTweetFilter implements TweetFilter<String[],String> {
         String[] preparedSmartTokens = new String[smartTokens.size()];
         smartTokens.toArray(preparedSmartTokens);
         return new DataCarrier<>(preparedSmartTokens);
+    }
+
+    private boolean isValidTopic(String strippedToken) {
+        return strippedToken.length() > 3 &&
+                !stopwords.contains(strippedToken) &&
+                strippedToken.matches(VALID_TOPIC_REG_EXP);
     }
 
     private String buildName(String[] tokens, Span nameMatch) {

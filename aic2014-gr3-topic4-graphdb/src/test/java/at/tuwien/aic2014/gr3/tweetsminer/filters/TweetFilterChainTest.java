@@ -17,7 +17,7 @@ public class TweetFilterChainTest {
 
     @Test
     public void testPipe() throws Exception {
-        assertArrayEquals(new String[] {"testing", "me@mail"},
+        assertArrayEquals(new String[] {"testing"},
                 tweetFilterChain.filter(new DataCarrier<>(
                         "RT @user: testing !@user me@mail --#user @ #user http://g:8080")).getData());
     }

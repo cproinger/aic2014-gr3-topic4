@@ -27,8 +27,8 @@ public class SmartTokenizerTweetFilterTest {
     @Test
     public void testPipe() throws Exception {
         assertArrayEquals(
-                new String[]{"test-ing", "Donald", "Brown Arnold", "Harry O'Connel"},
+                new String[]{"testing", "Donald", "Brown Arnold", "Harry O'Connel"},
                 smartTokenizerTweetFilter.filter(new DataCarrier<>(
-                        "This is,! test-ing? Donald and Brown Arnold. Harry O'Connel")).getData());
+                        "This is,! testing? Donald and Brown Arnold. Harry O'Connel")).getData());
     }
 }
