@@ -3,12 +3,19 @@ package at.tuwien.aic2014.gr3.docstore;
 import at.tuwien.aic2014.gr3.domain.Advertisment;
 import at.tuwien.aic2014.gr3.domain.UserTopic;
 import at.tuwien.aic2014.gr3.shared.AdvertismentRepository;
+import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.stereotype.Repository;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -16,34 +23,61 @@ import java.util.List;
 public class MongoAdvertismentRepository implements AdvertismentRepository {
 
     @Autowired
-    private DB db;
-    private Advertisment car;
-    private Advertisment youtube;
-
+    private static DB db;
 
     @Override
     public Collection<Advertisment> findByInterests(List<UserTopic> interests,
                                                     int max) throws UnsupportedOperationException {
         ArrayList<Advertisment> list = new ArrayList<Advertisment>();
-        initAdvertisments();
-
 
         while (list.size() < max) {
-            for (int i = 0; car.getTags().size() < i; i++) {
-                if (interests.contains(car.getSingleTag(i))){
-                    list.add(car);
-                }
-            }
+
         }
         //TODO christoph
         //throw new UnsupportedOperationException("not yet implemented");
         return list;
     }
 
-    private void initAdvertisments() {
-        car = new Advertisment("./ressource/CarBanner.jpg", Arrays.asList(new String[]{"car", "auto", "bmw", "audi", "vehicle"}));
-        youtube = new Advertisment("", Arrays.asList(new String[]{"video", "videos", "youtube"}));
+    public static void main(String[] args) {
+        AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(DocStoreConfig.class);
+        MongoAdvertismentRepository ad = ctx.getBean(MongoAdvertismentRepository.class);
+        BasicDBList list = new BasicDBList();
+        try {
+            Files.walk(Paths.get("D:\\Banner")).forEach(filePath -> {
+                if (Files.isRegularFile(filePath)) {
+                    String path = filePath.toString().toLowerCase();
+                    if(path.endsWith(".jpg")){
+                        String[] tags = readFile(path);
+                        for(String tag : tags){
+                            list.add(tag);
+                            System.out.println(tag);
+                        }
+                    }
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
+        BasicDBObject jo = new BasicDBObject().append("tags", list);
+        db.getCollection("ads").save(jo);
     }
 
+    private static String[] readFile(String path) {
+        String[] tags = null;
+        try {
+            FileInputStream is = new FileInputStream(path + ".txt");
+            List<String> lines = IOUtils.readLines(is);
+            for(String line : lines){
+                tags =  line.split(",");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return tags;
+    }
+
+    private void save() {
+
+    }
 }
