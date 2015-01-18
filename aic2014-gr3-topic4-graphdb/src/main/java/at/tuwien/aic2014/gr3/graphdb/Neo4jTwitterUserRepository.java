@@ -79,21 +79,19 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
 
         assert (twitterUser.getId() > 0);
 
-         ResourceIterator<Node> it = graphDb
-                .findNodesByLabelAndProperty(TWITTER_USER_NODE_LABEL, TWITTER_USER_ID_PROP, twitterUser.getId())
-                .iterator();
-
-        Node userNode;
-        if (it.hasNext()) {
-            userNode = it.next();
-        }
-        else {
-            userNode = graphDb.createNode(TWITTER_USER_NODE_LABEL);
-            userNode.setProperty(TWITTER_USER_ID_PROP, twitterUser.getId());
-        }
-
-        userNode.setProperty(TWITTER_USER_PROCESSED_STATUSES_COUNT_PROP,
+        String query = String.format(
+                        "MERGE (u:%s {%s:%d}) " +
+                        "ON MATCH SET u.%s = %d " +
+                        "ON CREATE SET u.%s = %d " +
+                        "RETURN u",
+                TWITTER_USER_NODE_LABEL.name(),
+                TWITTER_USER_ID_PROP, twitterUser.getId(),
+                TWITTER_USER_PROCESSED_STATUSES_COUNT_PROP,
+                twitterUser.getProcessedStatusesCount(),
+                TWITTER_USER_PROCESSED_STATUSES_COUNT_PROP,
                 twitterUser.getProcessedStatusesCount());
+
+        engine.query(query, null);
 
         log.debug("Twitter user node successfully saved!");
 
@@ -266,9 +264,9 @@ RETURN usr,c LIMIT 5
     
     @Override
     public List<UserTopic> findExistingInterestsForUser(long userId) {
-    	String statement = "MATCH (a:TwitterUser)-[:MENTIONED_TOPIC]->(b:topic) "
+    	String statement = "MATCH (a:TwitterUser)-[r:MENTIONED_TOPIC]->(b:topic) "
     			+ "WHERE a.twitterUserId = {userId} "
-    			+ "WITH b.topic as to, count(b) as cnt "
+    			+ "WITH b.topic as to, r.times as cnt "
     			+ "RETURN to, cnt ORDER BY cnt DESC";
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("userId", userId);

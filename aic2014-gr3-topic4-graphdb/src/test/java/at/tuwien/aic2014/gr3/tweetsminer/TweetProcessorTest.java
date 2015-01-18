@@ -2,11 +2,13 @@ package at.tuwien.aic2014.gr3.tweetsminer;
 
 import at.tuwien.aic2014.gr3.graphdb.Neo4jTwitterUserRelationshipHandler;
 import at.tuwien.aic2014.gr3.graphdb.Neo4jTwitterUserRepository;
+import at.tuwien.aic2014.gr3.graphdb.TwitterUserRelationships;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.rest.graphdb.entity.RestRelationship;
 import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +23,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Scanner;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -100,19 +103,21 @@ public abstract class TweetProcessorTest {
                 "MATCH (u1:%s {%s:{u1_id}}) - [rel:%s] -> (hashtag:%s {%s:{hashtag}}) RETURN rel",
                 Neo4jTwitterUserRepository.TWITTER_USER_NODE_LABEL.name(),
                 Neo4jTwitterUserRepository.TWITTER_USER_ID_PROP,
-                "MENTIONED_HASHTAG",
+                TwitterUserRelationships.MENTIONED_HASHTAG.name(),
                 Neo4jTwitterUserRelationshipHandler.HASHTAG_LABEL.name(),
                 Neo4jTwitterUserRelationshipHandler.HASHTAG_NAME_PROP);
         Map<String, Object> params = new HashMap<>();
         params.put("u1_id", uId);
         params.put("hashtag", hashtag);
 
-        Iterator it = engine.query(query, params).iterator();
+        Iterator<Map<String,Object>> it = engine.query(query, params).iterator();
 
-        for (int i = 0; i < degree; ++i) {
-            assertTrue(it.hasNext());
-            it.next();
-        }
+        assertTrue(it.hasNext());
+
+        Map map = it.next();
+        assertEquals(degree, ((RestRelationship) map.get("rel")).getProperty(
+                Neo4jTwitterUserRelationshipHandler.MENTIONED_HASHTAG_COUNTER_PROP));
+
         assertFalse(it.hasNext());
     }
 
@@ -124,19 +129,21 @@ public abstract class TweetProcessorTest {
                 "MATCH (u1:%s {%s:{u1_id}}) - [rel:%s] -> (topic:%s {%s:{topic}}) RETURN rel",
                 Neo4jTwitterUserRepository.TWITTER_USER_NODE_LABEL.name(),
                 Neo4jTwitterUserRepository.TWITTER_USER_ID_PROP,
-                "MENTIONED_TOPIC",
+                TwitterUserRelationships.MENTIONED_TOPIC.name(),
                 Neo4jTwitterUserRelationshipHandler.TOPIC_LABEL.name(),
                 Neo4jTwitterUserRelationshipHandler.TOPIC_NAME_PROP);
         Map<String, Object> params = new HashMap<>();
         params.put("u1_id", uId);
         params.put("topic", topic);
 
-        Iterator it = engine.query(query, params).iterator();
+        Iterator<Map<String,Object>> it = engine.query(query, params).iterator();
 
-        for (int i = 0; i < degree; ++i) {
-            assertTrue(it.hasNext());
-            it.next();
-        }
+        assertTrue(it.hasNext());
+
+        Map map = it.next();
+        assertEquals(degree, ((RestRelationship) map.get("rel")).getProperty(
+                Neo4jTwitterUserRelationshipHandler.MENTIONED_TOPIC_COUNTER_PROP));
+
         assertFalse(it.hasNext());
     }
 
