@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import at.tuwien.aic2014.gr3.domain.Advertisment;
+import at.tuwien.aic2014.gr3.domain.PotentialInterest;
 import at.tuwien.aic2014.gr3.domain.UserTopic;
 import at.tuwien.aic2014.gr3.shared.AdvertismentRepository;
 import at.tuwien.aic2014.gr3.shared.AnalysisRepository;
@@ -31,8 +32,8 @@ public class AdSuggestionService {
 				interests, 5);
 	}
 	
-	public Collection<Advertisment> suggestAdsForPotentialUserInterests(long userId) {
-		List<UserTopic> interests = analysisRepository.findPotentialInterestsForUser(userId);
+	public Collection<Advertisment> suggestAdsForPotentialUserInterests(long userId, int minLen, int maxLen) {
+		List<PotentialInterest> interests = analysisRepository.findPotentialInterestsForUser(userId, minLen, maxLen);
 		LOG.info("potential interests for user {}: {}", userId, interests);
 		return advertismentRepository.findByInterests(
 				interests, 5);

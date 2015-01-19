@@ -1,6 +1,7 @@
 package at.tuwien.aic2014.gr3.graphdb;
 
 import at.tuwien.aic2014.gr3.domain.InterestedUsers;
+import at.tuwien.aic2014.gr3.domain.PotentialInterest;
 import at.tuwien.aic2014.gr3.domain.TwitterUser;
 import at.tuwien.aic2014.gr3.domain.UserAndCount;
 import at.tuwien.aic2014.gr3.domain.UserTopic;
@@ -320,6 +321,34 @@ public class Neo4jTwitterUserRepositoryTest {
     			+ "UserTopic [topic=t2, cnt=3], "
     			+ "UserTopic [topic=t3, cnt=2], "
     			+ "UserTopic [topic=t4, cnt=1]]", result.toString());
+    }
+    
+    @Test
+    public void testFindPotentialInterestsForUser() {
+    	TwitterUser prev = testTwitterUser;
+    	for(int i = 1; i <=10; i++) {
+    		TwitterUser u = new TwitterUser();
+    		u.setId(testTwitterUser.getId() + i);
+    		neo4jTwitterUserDao.save(u);
+    		neo4jTwitterUserDao.relation(u).isFriendOf(prev);
+    		
+    		for(int n = 1; n <= i; n++) {
+				String topic = "t" + i;
+				neo4jTwitterUserDao.relation(u).mentionedTopic(topic);
+        	}
+    		prev = u;
+    	}
+    	assertEquals("[PotentialInterest [twitterUser=TwitterUser [id=2, name=null], len=1, topic=t1]"
+    			+ ", PotentialInterest [twitterUser=TwitterUser [id=3, name=null], len=2, topic=t2]"
+    			+ ", PotentialInterest [twitterUser=TwitterUser [id=4, name=null], len=3, topic=t3]]", 
+    			neo4jTwitterUserDao
+						.findPotentialInterestsForUser(testTwitterUser.getId(), 1, 3).toString());
+    	
+    	assertEquals("[PotentialInterest [twitterUser=TwitterUser [id=3, name=null], len=2, topic=t2]"
+    			+ ", PotentialInterest [twitterUser=TwitterUser [id=4, name=null], len=3, topic=t3]"
+    			+ ", PotentialInterest [twitterUser=TwitterUser [id=5, name=null], len=4, topic=t4]]", 
+    			neo4jTwitterUserDao
+						.findPotentialInterestsForUser(testTwitterUser.getId(), 2, 4).toString());
     }
 
 	private void assertUserAndCount(UserAndCount next, long userId, int count) {

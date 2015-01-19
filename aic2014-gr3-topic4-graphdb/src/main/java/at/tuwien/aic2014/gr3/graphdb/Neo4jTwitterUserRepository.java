@@ -26,6 +26,7 @@ import org.neo4j.rest.graphdb.util.ResultConverter;
 import org.springframework.stereotype.Repository;
 
 import at.tuwien.aic2014.gr3.domain.InterestedUsers;
+import at.tuwien.aic2014.gr3.domain.PotentialInterest;
 import at.tuwien.aic2014.gr3.domain.TwitterUser;
 import at.tuwien.aic2014.gr3.domain.UserAndCount;
 import at.tuwien.aic2014.gr3.domain.UserTopic;
@@ -151,12 +152,7 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
     }
 
     private TwitterUser twitterUserFromNode(Node twitterUserNode) {
-        TwitterUser twitterUser = new TwitterUser();
-
-        //TODO use injected component to fetch sql data as well. 
-        
-        Object property = twitterUserNode.getProperty(TWITTER_USER_ID_PROP);
-		twitterUser.setId(Long.parseLong(String.valueOf(property)));
+        TwitterUser twitterUser = twitterUserFromId(twitterUserNode.getProperty(TWITTER_USER_ID_PROP));
         try {
             twitterUser.setProcessedStatusesCount(Integer.parseInt(
                     String.valueOf(twitterUserNode.getProperty(TWITTER_USER_PROCESSED_STATUSES_COUNT_PROP))));
@@ -167,6 +163,16 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
 
         return twitterUser;
     }
+
+	private TwitterUser twitterUserFromId(Object idProp) {
+		TwitterUser twitterUser = new TwitterUser();
+
+        //TODO use injected component to fetch sql data as well. 
+        
+        long id = Long.parseLong(String.valueOf(idProp));
+		twitterUser.setId(id);
+		return twitterUser;
+	}
     
     @Override
     public Iterable<UserAndCount> findMostRetweetedUsers() {
@@ -277,8 +283,26 @@ RETURN usr,c LIMIT 5
     }
     
     @Override
-    public List<UserTopic> findPotentialInterestsForUser(long userId) {
-    	//TODO FIXME. 
-    	return findExistingInterestsForUser(userId);
+    public List<PotentialInterest> findPotentialInterestsForUser(long userId, int minLen, int maxLen) {
+    	
+    	//path-length kann man leider nicht anders angeben als das man es über den query
+    	//string parametrisiert. 
+    	String statement = "match (u:TwitterUser{twitterUserId : {userId} })"
+    			+ "-[ifp:IS_FRIEND_OF*" + minLen + ".." + maxLen + "]-(f:TwitterUser) "
+    			+ "-[m:MENTIONED_TOPIC]->(t:topic) "
+    			+ " where not (u)-[:MENTIONED_TOPIC]->(t) "
+    			+ " with f.twitterUserId as fid, length(ifp) as len, t.topic as to "
+    			+ " ORDER BY len ASC "
+    			+ "return fid, len, to limit 20";
+    	
+    	Map<String, Object> params = new HashMap<String, Object>();
+    	params.put("userId", userId);
+    	params.put("minLen", minLen);
+    	params.put("maxLen", maxLen);
+		QueryResult<Map<String, Object>> result = engine.query(statement, params);
+		ArrayList<PotentialInterest> topics = new ArrayList<PotentialInterest>();
+		result.forEach(r -> topics.add(new PotentialInterest(
+				twitterUserFromId(r.get("fid")), (int) r.get("len"), (String) r.get("to"))));
+		return topics;
     }
 }

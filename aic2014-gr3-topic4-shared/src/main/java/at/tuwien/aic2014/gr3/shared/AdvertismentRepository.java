@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.List;
 
 import at.tuwien.aic2014.gr3.domain.Advertisment;
-import at.tuwien.aic2014.gr3.domain.UserTopic;
+import at.tuwien.aic2014.gr3.domain.IHasTopic;
 
 public interface AdvertismentRepository {
 
@@ -17,6 +17,6 @@ public interface AdvertismentRepository {
 	 *		with the highest counts. 
 	 */
 	public Collection<Advertisment> findByInterests(
-			List<UserTopic> interests,
+			List<? extends IHasTopic> interests,
 			int max);
 }

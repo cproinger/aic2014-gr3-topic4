@@ -187,4 +187,11 @@ public class TwitterUser {
     public void setProcessedStatusesCount(int processedStatusesCount) {
         this.processedStatusesCount = processedStatusesCount;
     }
+
+	@Override
+	public String toString() {
+		return "TwitterUser [id=" + id + ", name=" + name + "]";
+	}
+    
+    
 }

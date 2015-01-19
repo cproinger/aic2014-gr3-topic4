@@ -2,7 +2,7 @@ package at.tuwien.aic2014.gr3.domain;
 
 import java.util.Map;
 
-public class UserTopic {
+public class UserTopic implements IHasTopic {
 
 	private String topic;
 	private int cnt;

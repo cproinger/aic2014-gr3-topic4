@@ -3,6 +3,7 @@ package at.tuwien.aic2014.gr3.shared;
 import java.util.List;
 
 import at.tuwien.aic2014.gr3.domain.InterestedUsers;
+import at.tuwien.aic2014.gr3.domain.PotentialInterest;
 import at.tuwien.aic2014.gr3.domain.UserAndCount;
 import at.tuwien.aic2014.gr3.domain.UserTopic;
 
@@ -14,5 +15,5 @@ public interface AnalysisRepository {
 
 	List<UserTopic> findExistingInterestsForUser(long userId);
 
-	List<UserTopic> findPotentialInterestsForUser(long userId);
+	List<PotentialInterest> findPotentialInterestsForUser(long userId, int minLen, int maxLen);
 }

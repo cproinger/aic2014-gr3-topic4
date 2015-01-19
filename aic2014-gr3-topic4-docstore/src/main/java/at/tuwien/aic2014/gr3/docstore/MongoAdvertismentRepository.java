@@ -1,16 +1,6 @@
 package at.tuwien.aic2014.gr3.docstore;
 
-import at.tuwien.aic2014.gr3.domain.Advertisment;
-import at.tuwien.aic2014.gr3.domain.UserTopic;
-import at.tuwien.aic2014.gr3.shared.AdvertismentRepository;
-import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import org.apache.commons.io.IOUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.stereotype.Repository;
-
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -19,6 +9,19 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.stereotype.Repository;
+
+import at.tuwien.aic2014.gr3.domain.Advertisment;
+import at.tuwien.aic2014.gr3.domain.IHasTopic;
+import at.tuwien.aic2014.gr3.shared.AdvertismentRepository;
+
+import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DB;
+
 @Repository
 public class MongoAdvertismentRepository implements AdvertismentRepository {
 
@@ -26,7 +29,7 @@ public class MongoAdvertismentRepository implements AdvertismentRepository {
     private static DB db;
 
     @Override
-    public Collection<Advertisment> findByInterests(List<UserTopic> interests,
+    public Collection<Advertisment> findByInterests(List<? extends IHasTopic> interests,
                                                     int max) throws UnsupportedOperationException {
         ArrayList<Advertisment> list = new ArrayList<Advertisment>();
 
@@ -71,6 +74,10 @@ public class MongoAdvertismentRepository implements AdvertismentRepository {
             for(String line : lines){
                 tags =  line.split(",");
             }
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            
+			IOUtils.copy(is, output);
+			output.toByteArray();
         } catch (IOException e) {
             e.printStackTrace();
         }
