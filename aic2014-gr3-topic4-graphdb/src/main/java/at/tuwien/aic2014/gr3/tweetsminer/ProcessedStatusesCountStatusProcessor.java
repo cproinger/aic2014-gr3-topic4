@@ -28,7 +28,7 @@ public class ProcessedStatusesCountStatusProcessor implements TwitterStatusProce
                 log.debug("First time status from user " + twitterStatus.getUser().getId());
                 user = new TwitterUser();
                 user.setId(twitterStatus.getUser().getId());
-                user.setProcessedStatusesCount(0);
+                user.setProcessedStatusesCount(1);
             }
             else {
                 log.debug("Already processed " + user.getProcessedStatusesCount() + " from user " + user.getId());

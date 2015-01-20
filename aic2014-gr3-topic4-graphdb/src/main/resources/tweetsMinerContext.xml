@@ -60,6 +60,7 @@
         <property name="twitterStatusProcessors">
             <list>
                 <ref bean="extractUserStatusProcessor"/>
+                <ref bean="processStatusesCountStatusProcessor"/>
                 <ref bean="mentionedUsersStatusProcessor"/>
                 <ref bean="mentionedHashtagsStatusProcessor"/>
                 <ref bean="repliedToStatusProcessor"/>
@@ -67,6 +68,10 @@
                 <ref bean="topicExtractionStatusProcessor"/>
             </list>
         </property>
+    </bean>
+
+    <bean id="processStatusesCountStatusProcessor" class="at.tuwien.aic2014.gr3.tweetsminer.ProcessedStatusesCountStatusProcessor">
+        <property name="twitterUserRepository" ref="neo4jTwitterUserDao"/>
     </bean>
 
     <bean id="extractUserStatusProcessor" class="at.tuwien.aic2014.gr3.sql.SQLTweetProcessing">

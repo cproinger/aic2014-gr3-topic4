@@ -25,6 +25,15 @@ public class ChainedStatusProcessor implements TwitterStatusProcessor {
     public void process(Status twitterStatus) {
         log.debug("Chained status processor processing twitter status...");
 
+        if (twitterStatus.getUser() == null) {
+            log.warn ("Found tweet with no user...");
+            return;
+        }
+        if (!isLanguageSupported(twitterStatus)) {
+            log.warn ("Unsupported language for tweet");
+            return;
+        }
+
         for (TwitterStatusProcessor processor : twitterStatusProcessors) {
             try {
                 processor.process(twitterStatus);
@@ -35,5 +44,9 @@ public class ChainedStatusProcessor implements TwitterStatusProcessor {
         }
 
         log.debug("Chained status processor successfully processed twitter status");
+    }
+
+    private boolean isLanguageSupported(Status twitterStatus) {
+        return twitterStatus.getLang().equals("en");
     }
 }

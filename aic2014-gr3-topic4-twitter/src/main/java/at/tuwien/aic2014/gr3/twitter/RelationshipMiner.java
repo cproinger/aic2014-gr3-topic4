@@ -50,12 +50,12 @@ public class RelationshipMiner {
         this.twitter = twitter;
     }
 
-    public Iterator<User> getFriends(long userId) throws TwitterException{
-        return twitter.getFriendsList(userId, 0).iterator();
+    public Iterator<User> getFriends(TwitterUser user) throws TwitterException{
+        return twitter.getFriendsList(user.getScreenName(), -1).iterator();
 	}
 	
-	public Iterator<User> getFollowers(long userId) throws TwitterException{
-		return twitter.getFollowersList(userId,0).iterator();
+	public Iterator<User> getFollowers(TwitterUser user) throws TwitterException{
+		return twitter.getFollowersList(user.getScreenName(), -1).iterator();
 	}
 	
 	public void crawlRealationships() {
@@ -70,9 +70,34 @@ public class RelationshipMiner {
                     log.debug("Crawling relationships for user " + user.getId());
 
                     try {
-                        crawlRelationships(user);
+                        RateLimitStatus rate = twitter.getRateLimitStatus().get("/friends/list");
+                        while (running && rate.getRemaining() == 0 && rate.getSecondsUntilReset() > 0) {
+                            log.info ("Rate limit achieved. Sleeping...");
+                            try {
+                                Thread.sleep(rate.getSecondsUntilReset() * 1000);
+                            } catch (InterruptedException e) {
+                                log.warn("Interrupt received!");
+                            }
+                        }
+
+                        if (running) {
+                            crawlRelationships(user);
+                        }
                     } catch (TwitterException e) {
-                        log.error("Crawling error reported", e);
+                        if(e.getErrorCode() == 88) {
+                            RateLimitStatus rts = e.getRateLimitStatus();
+
+                            try {
+                                //back off
+                                int i = rts.getSecondsUntilReset();
+                                log.warn("Rate limit. Sleep " + i + " seconds...");
+                                Thread.sleep(i * 1000);
+                            } catch (InterruptedException e1) {
+                                log.warn("Interrupted", e);
+                            }
+                        } else {
+                            log.error("twitter-exception", e);
+                        }
                     }
                 }
             } catch (RepositoryException e) {
@@ -88,9 +113,6 @@ public class RelationshipMiner {
             return;
         }
 
-		Iterator<User> friendsIterator = getFriends(user.getId());
-		Iterator<User> followerIterator = getFollowers(user.getId());
-
         user.setLastTimeSynched(new Date());
         try {
             sqlUserRepository.save(user);
@@ -98,14 +120,20 @@ public class RelationshipMiner {
             log.error("SQL exception reported", e);
         }
 
+		Iterator<User> friendsIterator = getFriends(user);
+		Iterator<User> followerIterator = getFollowers(user);
+
+
         while (friendsIterator.hasNext()) {
             TwitterUser friend = TwitterUserUtils.create(friendsIterator.next());
-            handleFriendshipRelation (user, friend);
+            log.info ("Twitter friend: " + friend);
+            handleFriendshipRelation(user, friend);
         }
 
         while (followerIterator.hasNext()) {
             TwitterUser follower = TwitterUserUtils.create(followerIterator.next());
-            handleFriendshipRelation(follower, user);
+            log.info ("Twitter follower: " + follower);
+            handleFollowerRelation(user, follower);
         }
 	}
 
@@ -123,8 +151,53 @@ public class RelationshipMiner {
             for (Status status : statuses) {
                 statusProcessor.process(status);
             }
+        } catch (TwitterException e) {
+            if(e.getErrorCode() == 88) {
+                RateLimitStatus rts = e.getRateLimitStatus();
+
+                try {
+                    //back off
+                    int i = rts.getSecondsUntilReset();
+                    log.warn("Rate limit. Sleep " + i + " seconds...");
+                    Thread.sleep(i * 1000);
+                } catch (InterruptedException e1) {
+                    log.warn("Interrupted", e);
+                }
+            } else {
+                log.error("twitter-exception", e);
+            }
+        }
+    }
+
+    private void handleFollowerRelation (TwitterUser user, TwitterUser follower) {
+        try {
+            sqlUserRepository.save(follower);
+            neo4jTwitterUserDao.relation(follower).isFriendOf(user);
         } catch (Exception e) {
-            log.error("Twitter error", e);
+            log.error ("Repository error", e);
+        }
+
+        try {
+            ResponseList<Status> statuses = twitter.getUserTimeline(follower.getId());
+
+            for (Status status : statuses) {
+                statusProcessor.process(status);
+            }
+        } catch (TwitterException e) {
+            if(e.getErrorCode() == 88) {
+                RateLimitStatus rts = e.getRateLimitStatus();
+
+                try {
+                    //back off
+                    int i = rts.getSecondsUntilReset();
+                    log.warn("Rate limit. Sleep " + i + " seconds...");
+                    Thread.sleep(i * 1000);
+                } catch (InterruptedException e1) {
+                    log.warn("Interrupted", e);
+                }
+            } else {
+                log.error("twitter-exception", e);
+            }
         }
     }
 
