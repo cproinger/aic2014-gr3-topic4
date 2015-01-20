@@ -61,4 +61,5 @@ public class MongoAdvertismentRepositoryTest  {
             Assert.fail("List should not be null!");
         }
     }
+
 }

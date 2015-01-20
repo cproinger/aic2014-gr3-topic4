@@ -1,51 +1,41 @@
 package at.tuwien.aic2014.gr3.domain;
 
-import java.util.List;
-
 /**
  * an ad
  */
 public class Advertisment {
 
-    String filepath;
-    List<String> tags;
+    byte[] picture;
+    String[] tags;
 
-    public Advertisment(String filepath, List<String> tags){
-        this.filepath = filepath;
+    public Advertisment(byte[] picture, String[] tags){
+        this.picture = picture;
         this.tags = tags;
     }
 
-    public String getUrl() {
-        return filepath;
+    public byte[] getImage() {
+        return picture;
     }
 
-    public void setUrl(String filepath) {
-        this.filepath = filepath;
+    public void setImage(byte[] picture) {
+        this.picture = picture;
     }
 
-    public List<String> getTags() {
+    public String[] getTags() {
         return tags;
     }
 
-    public void setTags(List<String> tags) {
+    public void setTags(String[] tags) {
         this.tags = tags;
     }
 
-    public void setSingleTag(String tag){
-        this.tags.add(tag);
-    }
-
-    public String getSingleTag(int index){
-        return this.tags.get(index);
-    }
-
     public String toString(){
-        String tagString = tags.get(0) + ",";
-        for (int i = 1;tags.size()<(i-1);i++){
-            tagString += tags.get(i) + ",";
+        String tagString = tags[0] + ",";
+        for (int i = 1;tags.length<(i-1);i++){
+            tagString += tags[i] + ",";
         }
-        tagString += tags.get(tags.size()-1);
-        return "Advertisment [URL=" + this.filepath + ", tags="
+        tagString += tags[tags.length-1];
+        return "Advertisment [Imagesize: " + picture.length + "tags="
                 + tagString + "]";
     }
 }
