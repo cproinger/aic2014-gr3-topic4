@@ -12,6 +12,8 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 /**
@@ -55,7 +57,8 @@ public class MongoAdvertismentRepositoryTest  {
         interests.add(interest2);
         AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(DocStoreConfig.class);
         MongoAdvertismentRepository mongoAdvertisment = ctx.getBean(MongoAdvertismentRepository.class);
-        mongoAdvertisment.save();
+        Path path = Paths.get("aic2014-gr3-topic4-docstore\\src\\test\\resources\\img");
+        mongoAdvertisment.save(path);
         Collection<Advertisment> list = mongoAdvertisment.findByInterests(interests, 5);
         if (list.isEmpty()){
             Assert.fail("List should not be null!");

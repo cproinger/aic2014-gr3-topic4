@@ -14,6 +14,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -62,7 +63,7 @@ public class MongoAdvertismentRepository implements AdvertismentRepository {
     public static void main(String[] args) {
         AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(DocStoreConfig.class);
         MongoAdvertismentRepository ad = ctx.getBean(MongoAdvertismentRepository.class);
-        ad.save();
+        ad.save(Paths.get("C:\\Banner"));
     }
 
     private static String[] readFile(String path) {
@@ -80,11 +81,11 @@ public class MongoAdvertismentRepository implements AdvertismentRepository {
         return tags;
     }
 
-    public void save() {
+    public void save(Path imgPath) {
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
-            Files.walk(Paths.get("C:\\Banner")).forEach(filePath -> {
+            Files.walk(imgPath).forEach(filePath -> {
                 BasicDBList list = new BasicDBList();
                 if (Files.isRegularFile(filePath)) {
                     String path = filePath.toString().toLowerCase();
