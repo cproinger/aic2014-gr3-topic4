@@ -57,7 +57,7 @@ public class MongoAdvertismentRepositoryTest  {
         interests.add(interest2);
         AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(DocStoreConfig.class);
         MongoAdvertismentRepository mongoAdvertisment = ctx.getBean(MongoAdvertismentRepository.class);
-        Path path = Paths.get("aic2014-gr3-topic4-docstore\\src\\test\\resources\\img");
+        Path path = Paths.get("aic2014-gr3-topic4-docstore/src/test/resources/img");
         mongoAdvertisment.save(path);
         Collection<Advertisment> list = mongoAdvertisment.findByInterests(interests, 5);
         if (list.isEmpty()){
