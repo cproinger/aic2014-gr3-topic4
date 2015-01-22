@@ -152,22 +152,22 @@
         <constructor-arg value="en-token.bin"/>
     </bean>
     <bean id="enTokenizerTrainedData"
-          factory-bean="enTokenizerTrainedDataResource" factory-method="getFile"/>
+          factory-bean="enTokenizerTrainedDataResource" factory-method="getInputStream"/>
 
     <bean id="enPersonNamesTrainedDataResource" class="org.springframework.core.io.ClassPathResource">
         <constructor-arg value="en-ner-person.bin"/>
     </bean>
     <bean id="enPersonNamesTrainedData"
-          factory-bean="enPersonNamesTrainedDataResource" factory-method="getFile"/>
+          factory-bean="enPersonNamesTrainedDataResource" factory-method="getInputStream"/>
 
     <bean id="enStopwordsResource" class="org.springframework.core.io.ClassPathResource">
         <constructor-arg value="stopwords.csv"/>
     </bean>
     <bean id="enStopWords" class="au.com.bytecode.opencsv.CSVReader">
         <constructor-arg>
-            <bean class="java.io.FileReader">
+            <bean class="java.io.InputStreamReader">
                 <constructor-arg>
-                    <bean factory-bean="enStopwordsResource" factory-method="getFile"/>
+                    <bean factory-bean="enStopwordsResource" factory-method="getInputStream"/>
                 </constructor-arg>
             </bean>
         </constructor-arg>
