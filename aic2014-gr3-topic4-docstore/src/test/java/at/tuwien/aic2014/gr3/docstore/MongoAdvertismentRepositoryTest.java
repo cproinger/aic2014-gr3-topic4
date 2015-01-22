@@ -9,10 +9,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.*;
 
@@ -39,7 +43,7 @@ public class MongoAdvertismentRepositoryTest  {
     }
 
     @Test
-    public void testInterestsOfSingleUser(){
+    public void testInterestsOfSingleUser() throws IOException {
         Map<String,Object> map = new HashMap();
         map.put("to","car");
         map.put("cnt",10);
@@ -57,7 +61,7 @@ public class MongoAdvertismentRepositoryTest  {
         interests.add(interest2);
         AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(DocStoreConfig.class);
         MongoAdvertismentRepository mongoAdvertisment = ctx.getBean(MongoAdvertismentRepository.class);
-        Path path = Paths.get("aic2014-gr3-topic4-docstore/src/test/resources/img");
+        Path path = Paths.get(new PathMatchingResourcePatternResolver().getResource("img").getURI());
         mongoAdvertisment.save(path);
         Collection<Advertisment> list = mongoAdvertisment.findByInterests(interests, 5);
         if (list.isEmpty()){
