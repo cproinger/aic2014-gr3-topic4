@@ -6,6 +6,9 @@ import org.neo4j.graphdb.*;
 import org.neo4j.rest.graphdb.RestGraphDatabase;
 import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Neo4jTwitterUserRelationshipHandler implements  TwitterUserRelationshipHandler {
 
     public static final String HASHTAG_NAME_PROP = "hashtag";
@@ -204,19 +207,23 @@ public class Neo4jTwitterUserRelationshipHandler implements  TwitterUserRelation
 
     private void createUniqueHashtag (String hashtag) {
         String query = String.format(
-                "MERGE (h:%s {%s:'%s'}) RETURN h",
-                HASHTAG_LABEL.name(), HASHTAG_NAME_PROP, hashtag
+                "MERGE (h:%s {%s:{hashtag}}) RETURN h",
+                HASHTAG_LABEL.name(), HASHTAG_NAME_PROP
         );
+        Map params = new HashMap<String, Object>();
+        params.put("hashtag", hashtag);
 
-        engine.query(query, null);
+        engine.query(query, params);
     }
 
     private void createUniqueTopic (String topic) {
         String query = String.format(
-                "MERGE (t:%s {%s:'%s'}) RETURN t",
-                TOPIC_LABEL.name(), TOPIC_NAME_PROP, topic
+                "MERGE (t:%s {%s:{topic}}) RETURN t",
+                TOPIC_LABEL.name(), TOPIC_NAME_PROP
         );
+        Map params = new HashMap<String, Object>();
+        params.put("topic", topic);
 
-        engine.query(query, null);
+        engine.query(query, params);
     }
 }
