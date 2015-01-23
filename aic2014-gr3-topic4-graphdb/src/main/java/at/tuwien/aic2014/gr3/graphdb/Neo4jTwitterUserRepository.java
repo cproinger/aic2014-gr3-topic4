@@ -25,6 +25,7 @@ import org.neo4j.rest.graphdb.util.QueryResult;
 import org.neo4j.rest.graphdb.util.ResultConverter;
 import org.springframework.stereotype.Repository;
 
+import at.tuwien.aic2014.gr3.domain.InterestedUsersResult;
 import at.tuwien.aic2014.gr3.domain.InterestedUsers;
 import at.tuwien.aic2014.gr3.domain.PotentialInterest;
 import at.tuwien.aic2014.gr3.domain.TwitterUser;
@@ -202,6 +203,28 @@ RETURN usr,c LIMIT 5
     }
    
     @Override
+    public List<InterestedUsersResult> findInterstedUsers(boolean ascending, int processedCountMoreThan, int maxResults) {
+    	Map<String, Object> params = new HashMap<>();
+    	params.put("processedCountMoreThan", processedCountMoreThan);
+    	params.put("maxResults", maxResults);
+		QueryResult<Map<String, Object>> result = engine.query("match (u:TwitterUser)-[r:MENTIONED_TOPIC]->(:topic) " +
+    				"with u, sum(r.times) as n, avg(r.times) as uavg, stdev(r.times) as s " +
+    				"where u.processedStatusesCount > {processedCountMoreThan} and n > 0 and s <> 0 " + //die interessieren uns nicht wirklich weil unrealistische daten (ein tweet hat ~1-3 topics, sollte also kaum vorkommen)
+    				"match (u)-[r2:MENTIONED_TOPIC]->(t:topic) " + 
+    				"with u, n, (r2.times - uavg)^3 as xi_xm, s " +
+    				"with u, sum(xi_xm) / s^3 / n as skew " +
+    				"return u,skew  " + 
+    				"order by skew " + (ascending ? "ASC" : "DESC") + " limit {maxResults}", params);
+    	ArrayList<InterestedUsersResult> list = new ArrayList<>();
+		for(Map<String, Object> r : result) {
+			Node userNode = (Node) r.get("u");
+			double skew = (double) r.get("skew");
+			list.add(new InterestedUsersResult(twitterUserFromNode(userNode), skew));
+		}
+		return list;
+    }
+    
+    @Override
     public InterestedUsers findInterestedUsers() {
     	/*
     	 * vorkommenshäufigkeit = f(term, doc) / max(f(anyTerm, doc))
@@ -231,7 +254,7 @@ RETURN usr,c LIMIT 5
 			public QueryResult<Map<String, Object>> call() throws Exception {
 				String statement = "MATCH m = (a)-[:MENTIONED_TOPIC]->(b) "
 						+ "WITH a as usr, b.topic as topic "
-						+ "WITH usr, count(distinct topic) as cnt "
+						+ "WITH usr, count(topic) as cnt "
 						+ "ORDER BY cnt DESC "
 						+ "RETURN usr, cnt "
 						+ "LIMIT 3";
