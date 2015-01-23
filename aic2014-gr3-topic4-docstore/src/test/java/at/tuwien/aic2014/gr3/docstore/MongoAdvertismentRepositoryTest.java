@@ -9,14 +9,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.*;
 
@@ -30,7 +28,7 @@ import java.util.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = DocStoreConfig.class)
-public class MongoAdvertismentRepositoryTest  {
+public class MongoAdvertismentRepositoryTest {
 
     @Autowired
     private DB db;
@@ -44,15 +42,15 @@ public class MongoAdvertismentRepositoryTest  {
 
     @Test
     public void testInterestsOfSingleUser() throws IOException {
-        Map<String,Object> map = new HashMap();
-        map.put("to","car");
-        map.put("cnt",10);
+        Map<String, Object> map = new HashMap();
+        map.put("to", "car");
+        map.put("cnt", 10);
         UserTopic interest = new UserTopic(map);
-        map.put("to","bmw");
-        map.put("cnt",5);
+        map.put("to", "bmw");
+        map.put("cnt", 5);
         UserTopic interest1 = new UserTopic(map);
-        map.put("to","girls");
-        map.put("cnt",100);
+        map.put("to", "girls");
+        map.put("cnt", 100);
         UserTopic interest2 = new UserTopic(map);
 
         List<UserTopic> interests = new ArrayList<>();
@@ -64,9 +62,51 @@ public class MongoAdvertismentRepositoryTest  {
         Path path = Paths.get(new PathMatchingResourcePatternResolver().getResource("img").getURI());
         mongoAdvertisment.save(path);
         Collection<Advertisment> list = mongoAdvertisment.findByInterests(interests, 5);
-        if (list.isEmpty()){
+        if (list.isEmpty()) {
             Assert.fail("List should not be null!");
         }
+    }
+
+    @Test
+    public void testInterestsWithNoMatching() throws IOException{
+        Map<String, Object> map = new HashMap();
+        map.put("to", "run");
+        map.put("cnt", 10);
+        UserTopic interest = new UserTopic(map);
+        List<UserTopic> interests = new ArrayList<>();
+        interests.add(interest);
+        AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(DocStoreConfig.class);
+        MongoAdvertismentRepository mongoAdvertisment = ctx.getBean(MongoAdvertismentRepository.class);
+        Path path = Paths.get(new PathMatchingResourcePatternResolver().getResource("img").getURI());
+        mongoAdvertisment.save(path);
+        Collection<Advertisment> list = mongoAdvertisment.findByInterests(interests, 5);
+        if(!list.isEmpty()){
+            Assert.fail("List should be empty");
+        }
+        Assert.assertTrue("List is not empty",list.isEmpty());
+    }
+
+    @Test
+    public void testInterestsWithExceedingLimit() throws IOException{
+        Map<String, Object> map = new HashMap();
+        map.put("to", "audi");
+        map.put("cnt", 10);
+        UserTopic interest = new UserTopic(map);
+        map.put("to", "boy");
+        map.put("cnt", 10);
+        UserTopic interest2 = new UserTopic(map);
+        List<UserTopic> interests = new ArrayList<>();
+        interests.add(interest);
+        interests.add(interest2);
+        AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(DocStoreConfig.class);
+        MongoAdvertismentRepository mongoAdvertisment = ctx.getBean(MongoAdvertismentRepository.class);
+        Path path = Paths.get(new PathMatchingResourcePatternResolver().getResource("img").getURI());
+        mongoAdvertisment.save(path);
+        Collection<Advertisment> list = mongoAdvertisment.findByInterests(interests, 1);
+        if(list.isEmpty()){
+            Assert.fail("List should not be empty");
+        }
+        Assert.assertTrue("List has size of one",list.size()==1);
     }
 
 }
