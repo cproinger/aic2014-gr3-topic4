@@ -10,7 +10,7 @@
 
     <!-- Tweets Miner config -->
     <bean id="tweetsMiner" class="at.tuwien.aic2014.gr3.tweetsminer.TwitterStreamingStatusesMiner">
-        <property name="tweetRepository" ref="tweetsRepository"/>
+        <property name="tweetRepository" ref="mongoTweetRepository"/>
         <property name="processor" ref="chainedProcessor"/>
     </bean>
 
@@ -21,8 +21,6 @@
 
     <!-- Mongodb DB config -->
     <bean id="docStoreConfig" class="at.tuwien.aic2014.gr3.docstore.DocStoreConfig"/>
-    <!-- alias damit ander configs nicht angepasst werden müssen -->
-    <alias name="mongoTweetRepository" alias="tweetsRepository"/>
 
     <!-- Postgres DB config -->
     <bean id="sqlDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
@@ -66,7 +64,7 @@
     </bean>
 
     <bean id="extractUserStatusProcessor" class="at.tuwien.aic2014.gr3.sql.SQLTweetProcessing">
-        <constructor-arg name="tweetRepo" ref="tweetsRepository"/>
+        <constructor-arg name="tweetRepo" ref="mongoTweetRepository"/>
         <constructor-arg name="userRepo" ref="userRepo"/>
     </bean>
 
