@@ -21,9 +21,8 @@
 
     <!-- Mongodb DB config -->
     <bean id="docStoreConfig" class="at.tuwien.aic2014.gr3.docstore.DocStoreConfig"/>
-    <bean id="tweetsRepository" class="at.tuwien.aic2014.gr3.docstore.MongoTweetRepository">
-        <property name="db" ref="mongoDB"/>
-    </bean>
+    <!-- alias damit ander configs nicht angepasst werden müssen -->
+    <alias name="mongoTweetRepository" alias="tweetsRepository"/>
 
     <!-- Postgres DB config -->
     <bean id="sqlDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
