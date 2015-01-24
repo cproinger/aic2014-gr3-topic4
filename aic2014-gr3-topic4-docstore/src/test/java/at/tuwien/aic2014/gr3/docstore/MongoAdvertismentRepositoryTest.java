@@ -65,6 +65,7 @@ public class MongoAdvertismentRepositoryTest {
         if (list.isEmpty()) {
             Assert.fail("List should not be null!");
         }
+        System.out.println(list);
     }
 
     @Test
@@ -107,6 +108,7 @@ public class MongoAdvertismentRepositoryTest {
             Assert.fail("List should not be empty");
         }
         Assert.assertTrue("List has size of one",list.size()==1);
+        System.out.println(list);
     }
 
 }

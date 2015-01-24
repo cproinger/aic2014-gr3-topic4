@@ -30,7 +30,6 @@ public class MongoAdvertismentRepository implements AdvertismentRepository {
     public Collection<Advertisment> findByInterests(List<? extends IHasTopic> interests,
                                                     int max) throws UnsupportedOperationException {
         ArrayList<Advertisment> list = new ArrayList<Advertisment>();
-        boolean skipToNextAd = false;
         if (db.collectionExists("ads")) {
             DBCollection collection = db.getCollection("ads");
             DBCursor basic = collection.find();
@@ -38,30 +37,25 @@ public class MongoAdvertismentRepository implements AdvertismentRepository {
             while (basic.hasNext()) {
                 DBObject obj = basic.curr();
                 BasicDBList dblist = (BasicDBList) obj.get("tags");
-                for (Object dblistitem : dblist) {
-                    if (!skipToNextAd) {
-                        for (IHasTopic interest : interests) {
-                            if (interest.getTopic().equals((String) dblistitem)) {
-                                byte[] pic = (byte[]) obj.get("image");
-                                String[] tags = new String[dblist.size()];
-                                int i = 0;
-                                for (Object tag : dblist) {
-                                    tags[i] = (String) tag;
-                                    i++;
-                                }
-                                if (list.size() < max) {
-                                    list.add(new Advertisment(pic, tags));
-
-                                }
-                                skipToNextAd = true;
-                            }
+                for (IHasTopic interest : interests) {
+                    if (dblist.contains(interest.getTopic())) {
+                        byte[] pic = (byte[]) obj.get("image");
+                        String[] tags = new String[dblist.size()];
+                        int i = 0;
+                        for (Object tag : dblist) {
+                            tags[i] = (String) tag;
+                            i++;
                         }
+                        if (list.size() < max) {
+                            list.add(new Advertisment(pic, tags));
+                        }
+                        break;
                     }
                 }
-                skipToNextAd = false;
                 basic.next();
             }
         }
+
         return list;
     }
 
