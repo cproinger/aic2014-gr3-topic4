@@ -75,7 +75,7 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
 			engine.query("CREATE INDEX ON :topic(topic)",
 					new HashMap<String, Object>());
     	} catch (Exception e) {
-    		log.error(e.getMessage());
+    		log.error("error while creating indices", e);
     	}
     }
 
