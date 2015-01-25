@@ -30,32 +30,30 @@ public class MongoAdvertismentRepository implements AdvertismentRepository {
     public Collection<Advertisment> findByInterests(List<? extends IHasTopic> interests,
                                                     int max) throws UnsupportedOperationException {
         ArrayList<Advertisment> list = new ArrayList<Advertisment>();
+        DBCursor basic;
         if (db.collectionExists("ads")) {
+            BasicDBList inList = new BasicDBList();
             DBCollection collection = db.getCollection("ads");
-            DBCursor basic = collection.find();
-            basic.next();
+            for (IHasTopic interest : interests) {
+                inList.add(interest.getTopic());
+            }
+            BasicDBObject in = new BasicDBObject("$in", inList);
+            BasicDBObject query = new BasicDBObject("tags", in);
+            basic = collection.find(query).limit(max);
             while (basic.hasNext()) {
+                basic.next();
                 DBObject obj = basic.curr();
                 BasicDBList dblist = (BasicDBList) obj.get("tags");
-                for (IHasTopic interest : interests) {
-                    if (dblist.contains(interest.getTopic())) {
-                        byte[] pic = (byte[]) obj.get("image");
-                        String[] tags = new String[dblist.size()];
-                        int i = 0;
-                        for (Object tag : dblist) {
-                            tags[i] = (String) tag;
-                            i++;
-                        }
-                        if (list.size() < max) {
-                            list.add(new Advertisment(pic, tags));
-                        }
-                        break;
-                    }
+                byte[] pic = (byte[]) obj.get("image");
+                String[] tags = new String[dblist.size()];
+                int i = 0;
+                for (Object tag : dblist) {
+                    tags[i] = (String) tag;
+                    i++;
                 }
-                basic.next();
+                list.add(new Advertisment(pic, tags));
             }
         }
-
         return list;
     }
 

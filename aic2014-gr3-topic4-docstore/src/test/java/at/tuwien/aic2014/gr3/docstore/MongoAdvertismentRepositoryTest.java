@@ -52,11 +52,14 @@ public class MongoAdvertismentRepositoryTest {
         map.put("to", "girls");
         map.put("cnt", 100);
         UserTopic interest2 = new UserTopic(map);
-
+        map.put("to","camera");
+        map.put("cnt",200);
+        UserTopic interest3 = new UserTopic(map);
         List<UserTopic> interests = new ArrayList<>();
         interests.add(interest);
         interests.add(interest1);
         interests.add(interest2);
+        interests.add(interest3);
         AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(DocStoreConfig.class);
         MongoAdvertismentRepository mongoAdvertisment = ctx.getBean(MongoAdvertismentRepository.class);
         Path path = Paths.get(new PathMatchingResourcePatternResolver().getResource("img").getURI());
