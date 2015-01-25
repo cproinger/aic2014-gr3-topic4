@@ -23,6 +23,7 @@ import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
 import org.neo4j.rest.graphdb.util.ConvertedResult;
 import org.neo4j.rest.graphdb.util.QueryResult;
 import org.neo4j.rest.graphdb.util.ResultConverter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import at.tuwien.aic2014.gr3.domain.InterestedUsersResult;
@@ -51,9 +52,12 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
     private RestGraphDatabase graphDb;
     private RestCypherQueryEngine engine;
     private TwitterUserRelationshipHandlerFactory twitterUserRelationshipHandlerFactory;
+    
+    @Autowired(required = false)
+    private TwitterUserRepository userRepository;
 
     public final static Label TWITTER_USER_NODE_LABEL = () -> "TwitterUser";
-
+    
     public void setGraphDb(RestGraphDatabase graphDb) {
         this.graphDb = graphDb;
         engine = new RestCypherQueryEngine(graphDb.getRestAPI());
@@ -71,7 +75,7 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
 			engine.query("CREATE INDEX ON :topic(topic)",
 					new HashMap<String, Object>());
     	} catch (Exception e) {
-    		log.error(e.getMessage());
+    		log.error("error while creating indices", e);
     	}
     }
 
@@ -166,13 +170,17 @@ public class Neo4jTwitterUserRepository implements TwitterUserRepository
     }
 
 	private TwitterUser twitterUserFromId(Object idProp) {
-		TwitterUser twitterUser = new TwitterUser();
-
-        //TODO use injected component to fetch sql data as well. 
-        
         long id = Long.parseLong(String.valueOf(idProp));
-		twitterUser.setId(id);
-		return twitterUser;
+        try {
+        	if(userRepository != null)
+        		return userRepository.readById(id);
+		} catch (RepositoryException e) {
+			log.error("error loading user with id: " + id, e);
+		}
+        //fallback einfach die id liefern. 
+        TwitterUser u = new TwitterUser();
+        u.setId(id);
+        return u;
 	}
     
     @Override

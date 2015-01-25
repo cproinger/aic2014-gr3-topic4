@@ -1,32 +1,32 @@
 package at.tuwien.aic2014.gr3.sql;
 
-import at.tuwien.aic2014.gr3.shared.RepositoryException;
-import at.tuwien.aic2014.gr3.shared.TweetRepository;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import twitter4j.Status;
-import twitter4j.TwitterException;
-import twitter4j.TwitterObjectFactory;
+import static org.junit.Assert.assertEquals;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import twitter4j.Status;
+import twitter4j.TwitterObjectFactory;
+import at.tuwien.aic2014.gr3.shared.TweetRepository;
 
 /**
  * Created by buzz on 02.11.2014.
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {SqlConfig.class, MockExternalComponents.class})
+@ActiveProfiles("active-mocks")
 public class SQLTweetProcessingTest {
 
 	@Autowired

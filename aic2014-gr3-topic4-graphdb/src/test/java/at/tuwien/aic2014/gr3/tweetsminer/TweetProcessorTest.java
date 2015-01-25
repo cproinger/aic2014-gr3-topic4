@@ -1,11 +1,16 @@
 package at.tuwien.aic2014.gr3.tweetsminer;
 
-import at.tuwien.aic2014.gr3.graphdb.Neo4jTwitterUserRelationshipHandler;
-import at.tuwien.aic2014.gr3.graphdb.Neo4jTwitterUserRepository;
-import at.tuwien.aic2014.gr3.graphdb.TwitterUserRelationships;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Scanner;
+
 import org.junit.After;
 import org.junit.Before;
-import org.junit.runner.RunWith;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.rest.graphdb.entity.RestRelationship;
@@ -13,23 +18,15 @@ import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
 import twitter4j.Status;
 import twitter4j.TwitterObjectFactory;
+import at.tuwien.aic2014.gr3.graphdb.GraphDBTestBase;
+import at.tuwien.aic2014.gr3.graphdb.Neo4jTwitterUserRelationshipHandler;
+import at.tuwien.aic2014.gr3.graphdb.Neo4jTwitterUserRepository;
+import at.tuwien.aic2014.gr3.graphdb.TwitterUserRelationships;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Scanner;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("classpath:tweetsMinerTestContext.xml")
-public abstract class TweetProcessorTest {
+public abstract class TweetProcessorTest extends GraphDBTestBase {
 
     private static final String dropAllQuery =
             "MATCH (n) " +
