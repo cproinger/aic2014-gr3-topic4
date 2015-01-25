@@ -295,7 +295,7 @@ RETURN usr,c LIMIT 5
     	String statement = "MATCH (a:TwitterUser)-[r:MENTIONED_TOPIC]->(b:topic) "
     			+ "WHERE a.twitterUserId = {userId} "
     			+ "WITH b.topic as to, r.times as cnt "
-    			+ "RETURN to, cnt ORDER BY cnt DESC";
+    			+ "RETURN to, cnt ORDER BY cnt DESC limit 10";
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("userId", userId);
 		QueryResult<Map<String, Object>> result = engine.query(statement, params);
@@ -315,7 +315,7 @@ RETURN usr,c LIMIT 5
     			+ " where not (u)-[:MENTIONED_TOPIC]->(t) "
     			+ " with f.twitterUserId as fid, length(ifp) as len, t.topic as to "
     			+ " ORDER BY len ASC "
-    			+ "return fid, len, to limit 20";
+    			+ "return fid, len, to limit 10";
     	
     	Map<String, Object> params = new HashMap<String, Object>();
     	params.put("userId", userId);
