@@ -1,37 +1,32 @@
 package at.tuwien.aic2014.gr3.graphdb;
 
-import at.tuwien.aic2014.gr3.domain.InterestedUsers;
-import at.tuwien.aic2014.gr3.domain.PotentialInterest;
-import at.tuwien.aic2014.gr3.domain.TwitterUser;
-import at.tuwien.aic2014.gr3.domain.UserAndCount;
-import at.tuwien.aic2014.gr3.domain.UserTopic;
-import at.tuwien.aic2014.gr3.shared.RepositoryIterator;
-
-import org.apache.commons.lang3.tuple.Pair;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.neo4j.cypher.internal.compiler.v2_0.functions.Str;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.rest.graphdb.entity.RestRelationship;
-import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import org.apache.commons.lang3.tuple.Pair;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.rest.graphdb.entity.RestRelationship;
+import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
+import org.springframework.beans.factory.annotation.Autowired;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("classpath:tweetsMinerTestContext.xml")
-public class Neo4jTwitterUserRepositoryTest {
+import at.tuwien.aic2014.gr3.domain.InterestedUsers;
+import at.tuwien.aic2014.gr3.domain.TwitterUser;
+import at.tuwien.aic2014.gr3.domain.UserAndCount;
+import at.tuwien.aic2014.gr3.domain.UserTopic;
+import at.tuwien.aic2014.gr3.shared.RepositoryIterator;
+
+public class Neo4jTwitterUserRepositoryTest extends GraphDBTestBase {
 
     private static final String dropAllQuery =
             "MATCH (n) " +

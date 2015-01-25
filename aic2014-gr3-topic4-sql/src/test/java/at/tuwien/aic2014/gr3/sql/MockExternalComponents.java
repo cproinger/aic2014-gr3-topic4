@@ -4,10 +4,13 @@ import org.junit.rules.ExternalResource;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 
 import at.tuwien.aic2014.gr3.shared.TweetRepository;
 
 @Configuration
+@Profile("active-mocks")
 public class MockExternalComponents extends ExternalResource {
 
 
@@ -15,6 +18,7 @@ public class MockExternalComponents extends ExternalResource {
     
 	
 	@Bean
+	@Primary
 	public TweetRepository tweetRepo() {
 		return tweetRepo;
 	}

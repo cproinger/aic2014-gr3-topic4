@@ -31,6 +31,9 @@
         <property name="graphDb" ref="graphdb"/>
     </bean>
 
+	<!-- sql -->
+	<bean class="at.tuwien.aic2014.gr3.graphdb.MockExternalComponents"/>
+
     <bean id="neo4jTwitterUserDao" class="at.tuwien.aic2014.gr3.graphdb.Neo4jTwitterUserRepository"
           lazy-init="true">
         <property name="graphDb" ref="graphdb"/>

@@ -3,14 +3,17 @@ package at.tuwien.aic2014.gr3.sql;
 import at.tuwien.aic2014.gr3.domain.TwitterUser;
 import at.tuwien.aic2014.gr3.shared.RepositoryException;
 import at.tuwien.aic2014.gr3.shared.RepositoryIterator;
+
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.sql.DataSource;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
@@ -20,7 +23,8 @@ import java.util.List;
 import static org.junit.Assert.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("classpath:sqlTestContext.xml")
+@ContextConfiguration(classes = {SqlConfig.class, MockExternalComponents.class})
+@ActiveProfiles("active-mocks")
 public class SqlUserRepositoryTest {
 
     private static final String DROP_ALL_QUERY =
