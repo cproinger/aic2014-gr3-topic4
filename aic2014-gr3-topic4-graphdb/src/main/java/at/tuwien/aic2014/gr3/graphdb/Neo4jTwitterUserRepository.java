@@ -183,10 +183,9 @@ WITH b.twitterUserId as usr, count(*) as c
 order by c DESC 
 RETURN usr,c LIMIT 5
     	 */
-    	String statement = "MATCH (a)-[:`RETWEETED`]->(b) "
+    	String statement = "MATCH (a:TwitterUser)-[:`RETWEETED`]->(b:TwitterUser) "
     			+ "WITH b as usr, count(*) as c "
-    			+ "order by c DESC "
-    			+ "RETURN usr,c LIMIT 5";
+    			+ "RETURN usr,c order by c DESC  LIMIT 5";
 		Map<String, Object> params = new HashMap<String, Object>();
 		QueryResult<Map<String, Object>> result = engine.query(statement, params);
 		ResultConverter<Map<String, Object>, UserAndCount> converter = new ResultConverter<Map<String, Object>, UserAndCount>() {
