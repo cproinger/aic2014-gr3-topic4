@@ -262,11 +262,14 @@ public class Neo4jTwitterUserRepositoryTest {
 
     @Test
     public void testFindMostRetweeted() {
-    	TwitterUser retweetedUser = createRetweetedUser(15);
+    	final int degree = 15;
+		TwitterUser retweetedUser = createRetweetedUser(degree);
     	Iterable<UserAndCount> result = neo4jTwitterUserDao.findMostRetweetedUsers();
     	Iterator<UserAndCount> it = result.iterator();
     	assertEquals(true, it.hasNext());
-    	assertEquals(retweetedUser.getId(), it.next().getUser().getId());
+    	UserAndCount next = it.next();
+		assertEquals(retweetedUser.getId(), next.getUser().getId());
+    	assertEquals(degree, next.getCount());
     	assertEquals(false, it.hasNext());
     }
     
