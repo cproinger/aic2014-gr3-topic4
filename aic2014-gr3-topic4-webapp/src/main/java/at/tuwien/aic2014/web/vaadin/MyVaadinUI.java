@@ -1,22 +1,54 @@
 package at.tuwien.aic2014.web.vaadin;
 
+import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.List;
 
+
+
+
+
+
+
+
+
+import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.vaadin.spring.VaadinUI;
 
 
+
+
+
+
+
+
+
+
+import at.tuwien.aic2014.gr3.domain.Advertisment;
+import at.tuwien.aic2014.gr3.domain.PotentialInterest;
 import at.tuwien.aic2014.gr3.domain.TwitterUser;
+import at.tuwien.aic2014.gr3.domain.UserTopic;
 import at.tuwien.aic2014.gr3.shared.TweetRepository;
 import at.tuwien.aic2014.web.controller.GUIController;
+import at.tuwien.aic2014.web.controller.Neo4jDataController;
 import at.tuwien.aic2014.web.controller.TestDataController;
+
+
+
+
+
+
+
+
 
 
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.data.Item;
+import com.vaadin.data.util.converter.StringToIntegerConverter;
 import com.vaadin.server.UserError;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.ui.Button;
@@ -39,7 +71,8 @@ public class MyVaadinUI extends UI {
 
 	private static final long serialVersionUID = 1L;
 	
-	GUIController controller = new TestDataController();
+	@Autowired
+	GUIController guiController;
 	
 //	private final static Logger LOG = LoggerFactory.getLogger(MyVaadinUI.class);
 
@@ -53,15 +86,16 @@ public class MyVaadinUI extends UI {
 	private static final String FAVOURITESCOUNT = "Favourites-Count";
 	
 	
-	private TextField user_search = new TextField("User(id or name): ");
+	private TextField user_search = new TextField("User(id): ");
 	private OptionGroup interests_mode =new OptionGroup("Based on interests: ");
 	private ListSelect interests = new ListSelect("Interests:");
 	private Panel listAdPanel = new Panel("Advertisement");
 	private GridLayout adGrid = new GridLayout(3,1);
+	Table table =createUserGrid();
 	
 	
-	@Autowired
-	private transient TweetRepository tweetRepo;
+//	@Autowired
+//	private transient TweetRepository tweetRepo;
 
 	@Override
 	protected void init(VaadinRequest request) {
@@ -77,9 +111,29 @@ public class MyVaadinUI extends UI {
 	
 	//UserPanel	
 	FormLayout formLayout_userPanel = new FormLayout();
-	TextField table_search = new TextField("Search:");
-	Table table = createUserGrid();
-	formLayout_userPanel.addComponents(table_search,table);
+	TextField processedCountMoreThan = new TextField("processedCountMoreThan:");
+	TextField maxResults = new TextField("maxResults:");
+	OptionGroup order =new OptionGroup("Order: ");
+	order.addItems("ascending","descending");
+	order.select("ascending");
+	Button submit = new Button("Submit");
+	submit.addClickListener(new Button.ClickListener() {
+		@Override
+		public void buttonClick(com.vaadin.ui.Button.ClickEvent event) {
+			try{
+				submit.setComponentError(null);
+				int maxResultsInt = Integer.parseInt(maxResults.getValue());
+				int processedCountMoreThanInt = Integer.parseInt(processedCountMoreThan.getValue());
+				boolean asc =  order.getValue().toString().equals("ascending") ? true :false;
+				updateTable(asc, processedCountMoreThanInt, maxResultsInt);
+			}catch(Exception e){
+				submit.setComponentError(new UserError("Fehler bei Abfrage!"));
+				System.err.println(e);
+				System.err.println(e.getStackTrace());
+			}
+		}
+	});
+	formLayout_userPanel.addComponents(processedCountMoreThan,maxResults,order,submit,table);
 
 	//AdPanel
 	FormLayout formLayout_adPanel = new FormLayout();
@@ -96,9 +150,13 @@ public class MyVaadinUI extends UI {
 			TwitterUser user;
 			user_search.setComponentError(null);
 			try{
-			user = controller.getUserById(Long.parseLong(user_search.getValue()));
+			user = guiController.getUserById(Long.parseLong(user_search.getValue()));
+			
+			user = new TwitterUser();
+			user.setId(Long.parseLong(user_search.getValue()));
 			}catch(NumberFormatException e){
-				user = controller.getUserByName(user_search.getValue());
+				user = null;
+				
 			}
 			if(user == null){
 				System.out.println("Fehler");
@@ -106,16 +164,26 @@ public class MyVaadinUI extends UI {
 			}else{
 				adGrid.removeAllComponents();
 				interests.removeAllItems();
-				List<String> user_interests;
-				List<String> ads;
+				List<String> user_interests = new ArrayList<String>();
+				List<String> ads  = new ArrayList<String>();
 				if(interests_mode.getValue().toString().equals("existing")){
 					System.out.println("Existing");
-					user_interests = controller.getExistingInterestsForUser(user.getId());
-					ads = controller.getAdsForUserExistingInterests(user.getId());
+					for(UserTopic usertopic : guiController.getExistingInterestsForUser(user.getId())){
+						user_interests.add(usertopic.getTopic() + " (" + usertopic.getCnt() + ")");
+					}
+					for(Advertisment ad : guiController.getAdsForUserExistingInterests(user.getId())){
+						ads.add(ad.getTags().toString());
+						//TODO pics
+					}
 				}else{
 					System.out.println("Potetial");
-					user_interests = controller.getPotetialInterestsForUser(user.getId());
-					ads = controller.getAdsForUserPotentiaPotentialInterests(user.getId());
+					for(PotentialInterest pi : guiController.getPotetialInterestsForUser(user.getId())){
+						user_interests.add(pi.getTopic()+ " (" + pi.getLen()+ ")");
+					}
+					for(Advertisment ad : guiController.getAdsForUserPotentiaPotentialInterests(user.getId())){
+						ads.add(ad.getTags().toString());
+						//TODO pics
+					}
 				}
 				interests.addItems(user_interests.toArray());
 				for(String ad : ads){
@@ -147,7 +215,16 @@ public class MyVaadinUI extends UI {
 	
 	private Table createUserGrid(){
 		Table table = new Table();
+		StringToIntegerConverter plainIntegerConverter = new StringToIntegerConverter() {
+		    protected java.text.NumberFormat getFormat(Locale locale) {
+		        NumberFormat format = super.getFormat(locale);
+		        format.setGroupingUsed(false);
+		        return format;
+		    };
+		};
+		// either set for the field or in your field factory for multiple fields
 		table.addContainerProperty(UID, Long.class, -1);
+		table.setConverter(UID, plainIntegerConverter);
 		table.addContainerProperty(NAME, String.class, "-");
 		table.addContainerProperty(SCREENNAME, String.class, "-");
 		table.addContainerProperty(LOCATION, String.class, "-");
@@ -157,7 +234,27 @@ public class MyVaadinUI extends UI {
 		table.addContainerProperty(FAVOURITESCOUNT, Integer.class, 0);
 		
 		
-		List<TwitterUser> users = controller.getAllUser();
+////		List<TwitterUser> users = guiController.getAllUser();
+//		List<TwitterUser> users = new ArrayList<TwitterUser>();
+//		for(TwitterUser user: users){
+//			Object newItemId = table.addItem();
+//			Item row1 = table.getItem(newItemId);
+//			row1.getItemProperty(UID).setValue(Long.valueOf(user.getId()));
+//			row1.getItemProperty(NAME).setValue(user.getName());
+//			row1.getItemProperty(SCREENNAME).setValue(user.getScreenName());
+//			row1.getItemProperty(LOCATION).setValue(user.getLocation());
+//			row1.getItemProperty(FOLLOWERCOUNT).setValue(user.getFollowersCount());
+//			row1.getItemProperty(FRIENDSCOUNT).setValue(user.getFriendsCount());
+//			row1.getItemProperty(LISTEDCOUNT).setValue(user.getListedCount());
+//			row1.getItemProperty(FAVOURITESCOUNT).setValue(user.getFavouritesCount());
+//
+//		}
+	return table;
+	}
+	
+	private void updateTable(boolean ascending, int processedCountMoreThan, int maxResults){
+		this.table.removeAllItems();
+		List<TwitterUser> users = guiController.getInterstedUsers(ascending, processedCountMoreThan, maxResults);
 		for(TwitterUser user: users){
 			Object newItemId = table.addItem();
 			Item row1 = table.getItem(newItemId);
@@ -169,9 +266,7 @@ public class MyVaadinUI extends UI {
 			row1.getItemProperty(FRIENDSCOUNT).setValue(user.getFriendsCount());
 			row1.getItemProperty(LISTEDCOUNT).setValue(user.getListedCount());
 			row1.getItemProperty(FAVOURITESCOUNT).setValue(user.getFavouritesCount());
-
 		}
-	return table;
 	}
 	
 }

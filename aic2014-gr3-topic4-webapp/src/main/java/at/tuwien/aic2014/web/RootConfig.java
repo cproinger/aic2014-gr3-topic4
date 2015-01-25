@@ -13,5 +13,5 @@ import at.tuwien.aic2014.gr3.suggest.SuggestConfig;
 	DocStoreConfig.class})//TODO import other module-configs. 
 @ImportResource(value = "classpath*:/tweetsMinerTestContext.xml")
 public class RootConfig {
-
+	
 }

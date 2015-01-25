@@ -273,7 +273,7 @@ public class SqlUserRepository implements TwitterUserRepository {
                         + ",screen_name varchar(255)"
                         + ",location varchar(255)"
                         + ",url varchar(255)"
-                        + ",description varchar(255)"
+                        + ",description varchar(500)"
                         + ",protected boolean"
                         + ",verified boolean"
                         + ",followers_count integer"
