@@ -1,5 +1,7 @@
 package at.tuwien.aic2014.web.vaadin;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,10 +15,19 @@ import java.util.List;
 
 
 import java.util.Locale;
+import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.vaadin.spring.VaadinUI;
+
+
+
+
+
+
+
+
 
 
 
@@ -45,15 +56,27 @@ import at.tuwien.aic2014.web.controller.TestDataController;
 
 
 
+
+
+
+
+
+
+
+
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.data.Item;
 import com.vaadin.data.util.converter.StringToIntegerConverter;
+import com.vaadin.server.Resource;
+import com.vaadin.server.StreamResource;
+import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.server.UserError;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.FormLayout;
 import com.vaadin.ui.GridLayout;
+import com.vaadin.ui.Image;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.ListSelect;
 import com.vaadin.ui.OptionGroup;
@@ -90,7 +113,7 @@ public class MyVaadinUI extends UI {
 	private OptionGroup interests_mode =new OptionGroup("Based on interests: ");
 	private ListSelect interests = new ListSelect("Interests:");
 	private Panel listAdPanel = new Panel("Advertisement");
-	private GridLayout adGrid = new GridLayout(3,1);
+	private GridLayout adGrid = new GridLayout(2,1);
 	Table table =createUserGrid();
 	
 	
@@ -150,7 +173,7 @@ public class MyVaadinUI extends UI {
 			TwitterUser user;
 			user_search.setComponentError(null);
 			try{
-			user = guiController.getUserById(Long.parseLong(user_search.getValue()));
+//			user = guiController.getUserById(Long.parseLong(user_search.getValue()));
 			
 			user = new TwitterUser();
 			user.setId(Long.parseLong(user_search.getValue()));
@@ -165,14 +188,14 @@ public class MyVaadinUI extends UI {
 				adGrid.removeAllComponents();
 				interests.removeAllItems();
 				List<String> user_interests = new ArrayList<String>();
-				List<String> ads  = new ArrayList<String>();
+				List<Advertisment> ads  = new ArrayList<Advertisment>();
 				if(interests_mode.getValue().toString().equals("existing")){
 					System.out.println("Existing");
 					for(UserTopic usertopic : guiController.getExistingInterestsForUser(user.getId())){
 						user_interests.add(usertopic.getTopic() + " (" + usertopic.getCnt() + ")");
 					}
 					for(Advertisment ad : guiController.getAdsForUserExistingInterests(user.getId())){
-						ads.add(ad.getTags().toString());
+						ads.add(ad);
 						//TODO pics
 					}
 				}else{
@@ -181,15 +204,45 @@ public class MyVaadinUI extends UI {
 						user_interests.add(pi.getTopic()+ " (" + pi.getLen()+ ")");
 					}
 					for(Advertisment ad : guiController.getAdsForUserPotentiaPotentialInterests(user.getId())){
-						ads.add(ad.getTags().toString());
+						ads.add(ad);
 						//TODO pics
 					}
 				}
 				interests.addItems(user_interests.toArray());
-				for(String ad : ads){
-					adGrid.addComponent(new Label(ad));
-					adGrid.addComponent(new Label("Pic-dump"));
-					adGrid.addComponent(new Label("Interests-dump"));
+				int i = 1;
+				for(Advertisment ad : ads){
+					//ANFANG
+						    //if(true) continue;
+						    // ExternalResource externalResource = new ExternalResource(u);
+						    StreamSource streamSource = new StreamSource() {
+
+//						     @Override
+//						     public InputStream getStream() {
+//						      return new ByteArrayInputStream(imageRepo.findThumb(
+//						        a.getId(), nr, AngebotImage.DEFAULT_THUMB_SIZE));
+//						     }
+//						    };
+						@Override
+						     public InputStream getStream() {
+						      return new ByteArrayInputStream(ad.getImage());
+						     }
+						    };
+					  
+					//ENDE
+				Resource resource = new StreamResource(streamSource, new Random().nextInt()+"dump" + new Random().nextInt() + ".jpg");
+				Image image = new Image("ad#"+ (i++),resource);
+//					Image image = new Image(new )
+					adGrid.addComponent(image);
+//					adGrid.addComponent(new Label(ad));
+					ListSelect adTopics = new ListSelect("Topics");
+					adTopics.setWidth(100, Unit.PIXELS);
+					adTopics.setNullSelectionAllowed(false);
+					for(String s: ad.getTags()){
+						adTopics.addItem(s);
+					}
+					adGrid.addComponent(adTopics);
+//					adGrid.addComponent(new Label("Pic-dump"));
+//					adGrid.addComponent(new Label("Interests-dump"));
 					
 				}
 			}

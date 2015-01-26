@@ -41,8 +41,10 @@ public class Neo4jDataController implements GUIController {
 			List<TwitterUser> allUser = new ArrayList<TwitterUser>();
 //			InterestedUsers users =neo4jTwitterUserDao.findInterstedUsers(true, 10, 10);
 			List<InterestedUsersResult> users = neo4jTwitterUserDao.findInterstedUsers(ascending,processedCountMoreThan,maxResults);
+			if(users!=null){
 			for(InterestedUsersResult iur : users){
 				allUser.add(iur.getUser());
+			}
 			}
 		return allUser;
 	}
