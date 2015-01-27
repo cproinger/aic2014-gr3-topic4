@@ -4,13 +4,16 @@ package at.tuwien.aic2014.gr3.docstore;
 import at.tuwien.aic2014.gr3.domain.Advertisment;
 import at.tuwien.aic2014.gr3.domain.IHasTopic;
 import at.tuwien.aic2014.gr3.shared.AdvertismentRepository;
+
 import com.mongodb.*;
+
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.stereotype.Repository;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -41,8 +44,8 @@ public class MongoAdvertismentRepository implements AdvertismentRepository {
             BasicDBObject query = new BasicDBObject("tags", in);
             basic = collection.find(query).limit(max);
             while (basic.hasNext()) {
-                basic.next();
-                DBObject obj = basic.curr();
+                DBObject obj = basic.next();
+//                DBObject obj = basic.curr();
                 BasicDBList dblist = (BasicDBList) obj.get("tags");
                 byte[] pic = (byte[]) obj.get("image");
                 String[] tags = new String[dblist.size()];
@@ -61,6 +64,7 @@ public class MongoAdvertismentRepository implements AdvertismentRepository {
         AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(DocStoreConfig.class);
         MongoAdvertismentRepository ad = ctx.getBean(MongoAdvertismentRepository.class);
         ad.save(Paths.get("C:\\Banner"));
+        System.out.println("Fertig");
     }
 
     private static String[] readFile(String path) {
@@ -79,10 +83,10 @@ public class MongoAdvertismentRepository implements AdvertismentRepository {
     }
 
     public void save(Path imgPath) {
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
-            Files.walk(imgPath).forEach(filePath -> {
+        	for(File f : imgPath.toFile().listFiles()){
+        	Path filePath = Paths.get(f.getPath());
+//            Files.walk(imgPath).forEach(filePath -> {
                 BasicDBList list = new BasicDBList();
                 if (Files.isRegularFile(filePath)) {
                     String path = filePath.toString().toLowerCase();
@@ -95,18 +99,22 @@ public class MongoAdvertismentRepository implements AdvertismentRepository {
                         }
                         try {
                             FileInputStream is = new FileInputStream(filePath.toString());
+                            ByteArrayOutputStream out = new ByteArrayOutputStream();
                             IOUtils.copy(is, out);
                             byte[] data = out.toByteArray();
                             BasicDBObject image_jo = new BasicDBObject().append("image", data);
                             image_jo.append("tags", list);
                             db.getCollection("ads").save(image_jo);
+                            IOUtils.closeQuietly(is);
+                            IOUtils.closeQuietly(out);
                         } catch (IOException e) {
                             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
                         }
                     }
                 }
-            });
-        } catch (IOException e) {
+//            });
+        	}
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

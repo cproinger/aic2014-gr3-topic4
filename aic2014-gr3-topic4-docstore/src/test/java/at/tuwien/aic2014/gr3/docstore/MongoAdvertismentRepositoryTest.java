@@ -64,6 +64,7 @@ public class MongoAdvertismentRepositoryTest {
         MongoAdvertismentRepository mongoAdvertisment = ctx.getBean(MongoAdvertismentRepository.class);
         Path path = Paths.get(new PathMatchingResourcePatternResolver().getResource("img").getURI());
         mongoAdvertisment.save(path);
+       
         Collection<Advertisment> list = mongoAdvertisment.findByInterests(interests, 5);
         if (list.isEmpty()) {
             Assert.fail("List should not be null!");
