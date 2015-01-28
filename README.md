@@ -1,5 +1,7 @@
 # AIC-Aufgabe 2014 Topic 4 Gruppe 3
 
+[![Build Status](https://travis-ci.org/cproinger/aic2014-gr3-topic4.svg?branch=master)](https://travis-ci.org/cproinger/aic2014-gr3-topic4)
+
 ## Installation requirements
 
 * mongodb v2.6.5
